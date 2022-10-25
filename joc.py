@@ -13,11 +13,63 @@ class TipusCas(enum.Enum):
     PARET = 1
 
 
+class Rana(agent_lib.Agent):
+    def __init__(self, nom: str, path_img: str = "../assets/rana/rana.png"):
+        super().__init__(long_memoria=1)
+
+        posicio = random.randint(0, 7), random.randint(0, 7)
+
+        while posicio in Laberint.PARET:
+            posicio = random.randint(0, 7), random.randint(0, 7)
+
+        self.__posicio = posicio
+        self.__botant = 0
+        self.__dir_bot = None
+        self.__nom = nom
+        self.__path_img = path_img
+
+    def pinta(self, display):
+        pass
+
+    def actua(
+            self, percep: entorn.Percepcio
+    ) -> entorn.Accio | tuple[entorn.Accio, object]:
+        return AccionsRana.ESPERAR
+
+    @property
+    def path_img(self) -> str:
+        return self.__path_img
+
+    @property
+    def nom(self):
+        return self.__nom
+
+    @property
+    def posicio(self):
+        return self.__posicio
+
+    @posicio.setter
+    def posicio(self, val: tuple[int, int]):
+        self.__posicio = val
+
+    def start_bot(self, dir_bot):
+        self.__dir_bot = dir_bot
+        self.__botant = 3
+
+    def fer_bot(self):
+        self.__botant -= 1
+
+        return self.__dir_bot
+
+    def esta_botant(self) -> bool:
+        return self.__botant > 0
+
+
 class Casella:
     def __init__(
             self,
             tipus: TipusCas = TipusCas.LLIURE,
-            agent: agent_lib.Agent = None,
+            agent: Rana = None,
             menjar: bool = False,
     ):
         self.__tipus = tipus
@@ -64,61 +116,14 @@ class Casella:
             2 if self.__tipus is TipusCas.LLIURE else 0,
         )
         if self.__agent is not None:
-            img = pygame.image.load("../assets/rana.png")
+            img = pygame.image.load(self.__agent.path_img)
             img = pygame.transform.scale(img, (100, 100))
             window.blit(img, (x * 100, y * 100))
 
         if self.__menjar:
-            img = pygame.image.load("../assets/pizza.png")
+            img = pygame.image.load("../assets/rana/pizza.png")
             img = pygame.transform.scale(img, (100, 100))
             window.blit(img, (x * 100, y * 100))
-
-
-class Rana(agent_lib.Agent):
-    def __init__(self, nom: str):
-        super().__init__(long_memoria=1)
-
-        posicio = random.randint(0, 7), random.randint(0, 7)
-
-        while posicio in Laberint.PARET:
-            posicio = random.randint(0, 7), random.randint(0, 7)
-
-        self.__posicio = posicio
-        self.__botant = 0
-        self.__dir_bot = None
-        self.__nom = nom
-
-    def pinta(self, display):
-        pass
-
-    def actua(
-            self, percep: entorn.Percepcio
-    ) -> entorn.Accio | tuple[entorn.Accio, object]:
-        return AccionsRana.ESPERAR
-
-    @property
-    def nom(self):
-        return self.__nom
-
-    @property
-    def posicio(self):
-        return self.__posicio
-
-    @posicio.setter
-    def posicio(self, val: tuple[int, int]):
-        self.__posicio = val
-
-    def start_bot(self, dir_bot):
-        self.__dir_bot = dir_bot
-        self.__botant = 3
-
-    def fer_bot(self):
-        self.__botant -= 1
-
-        return self.__dir_bot
-
-    def esta_botant(self) -> bool:
-        return self.__botant > 0
 
 
 class Laberint(joc.Joc):
@@ -204,15 +209,13 @@ class Laberint(joc.Joc):
             if (not (8 > nc_y >= 0)) or (not (8 > nc_x >= 0)):
                 raise agent_lib.Trampes()
 
-            if not self.__caselles[nc_x][nc_y].is_accessible():
-                raise agent_lib.Trampes()
+            if self.__caselles[nc_x][nc_y].is_accessible():
+                self.__caselles[oc_x][oc_y].pop_agent()
+                ha_menjat = self.__caselles[nc_x][nc_y].put_agent(agent_actual)
+                agent_actual.posicio = (nc_x, nc_y)
 
-            self.__caselles[oc_x][oc_y].pop_agent()
-            ha_menjat = self.__caselles[nc_x][nc_y].put_agent(agent_actual)
-            agent_actual.posicio = (nc_x, nc_y)
-
-            if ha_menjat:
-                print(f"Agent {agent_actual.nom} ha guanyat")
+                if ha_menjat:
+                    print(f"Agent {agent_actual.nom} ha guanyat")
 
     def _draw(self) -> None:
         super(Laberint, self)._draw()
