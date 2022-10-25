@@ -1,7 +1,7 @@
-#Practica 1 de la asignatura de Inteligencia Artificial
-###Grado en Ingenieria Informática - Universidad de las Islas Baleares
+# Practica 1 de la asignatura de Inteligencia Artificial
+### Grado en Ingenieria Informática - Universidad de las Islas Baleares
 
-##Instalación
+## Instalación
 
 Para poder utilizar estos ejemples necesitamos primero de todo tener un entorno en Python con las librerias necesarias instaladas. Para ello se deben seguir los siguientes pasos:
 
