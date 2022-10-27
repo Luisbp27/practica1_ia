@@ -14,7 +14,7 @@ class TipusCas(enum.Enum):
 
 
 class Rana(agent_lib.Agent):
-    def __init__(self, nom: str, path_img: str = "../assets/rana/rana.png"):
+    def __init__(self, nom: str, path_img: str = "./assets/rana.png"):
         super().__init__(long_memoria=1)
 
         posicio = random.randint(0, 7), random.randint(0, 7)
@@ -103,9 +103,9 @@ class Casella:
 
     def is_lliure(self):
         return (
-            (self.__tipus is TipusCas.LLIURE)
-            and (self.__agent is None)
-            and not self.__menjar
+                (self.__tipus is TipusCas.LLIURE)
+                and (self.__agent is None)
+                and not self.__menjar
         )
 
     def draw(self, window, x, y):
@@ -121,7 +121,7 @@ class Casella:
             window.blit(img, (x * 100, y * 100))
 
         if self.__menjar:
-            img = pygame.image.load("../assets/rana/pizza.png")
+            img = pygame.image.load("./assets/pizza.png")
             img = pygame.transform.scale(img, (100, 100))
             window.blit(img, (x * 100, y * 100))
 
@@ -197,8 +197,7 @@ class Laberint(joc.Joc):
                 direccio = agent_actual.fer_bot()
                 if not agent_actual.esta_botant():  # bot acabat
                     oc_x, oc_y = agent_actual.posicio
-                    nc_x, nc_y = Laberint._calcula_casella(
-                        (oc_x, oc_y), direccio, 2)
+                    nc_x, nc_y = Laberint._calcula_casella((oc_x, oc_y), direccio, 2)
             else:
                 agent_actual.start_bot(params[0])
         elif accio is AccionsRana.MOURE:

@@ -1,8 +1,9 @@
-import joc
 import agent
+import joc
 import sys
+import os
 
-sys.path.append("/home/luisb/Documentos/GitHub/ia_2022")
+sys.path.append(os.getcwd())
 
 
 def main():
