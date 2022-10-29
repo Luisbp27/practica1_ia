@@ -7,7 +7,7 @@ sys.path.append(os.getcwd())
 
 
 def main():
-    rana = agent.Rana("Miquel")
+    rana = agent.Rana("Rana")
     lab = joc.Laberint([rana], parets=True)
     lab.comencar()
 

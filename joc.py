@@ -32,7 +32,7 @@ class Rana(agent_lib.Agent):
         pass
 
     def actua(
-            self, percep: entorn.Percepcio
+        self, percep: entorn.Percepcio
     ) -> entorn.Accio | tuple[entorn.Accio, object]:
         return AccionsRana.ESPERAR
 
@@ -67,10 +67,10 @@ class Rana(agent_lib.Agent):
 
 class Casella:
     def __init__(
-            self,
-            tipus: TipusCas = TipusCas.LLIURE,
-            agent: Rana = None,
-            menjar: bool = False,
+        self,
+        tipus: TipusCas = TipusCas.LLIURE,
+        agent: Rana = None,
+        menjar: bool = False,
     ):
         self.__tipus = tipus
         self.__agent = agent
@@ -103,9 +103,9 @@ class Casella:
 
     def is_lliure(self):
         return (
-                (self.__tipus is TipusCas.LLIURE)
-                and (self.__agent is None)
-                and not self.__menjar
+            (self.__tipus is TipusCas.LLIURE)
+            and (self.__agent is None)
+            and not self.__menjar
         )
 
     def draw(self, window, x, y):
@@ -181,13 +181,13 @@ class Laberint(joc.Joc):
         return posicio[0] + (mov[0] * magnitut), posicio[1] + (mov[1] * magnitut)
 
     def _aplica(
-            self, accio: entorn.Accio, params=None, agent_actual: Rana = None
+        self, accio: entorn.Accio, params=None, agent_actual: Rana = None
     ) -> None:
         if accio not in AccionsRana:
             raise ValueError(f"Acció no existent en aquest joc: {accio}")
 
         if accio is not AccionsRana.ESPERAR and (
-                params is None or len(params) != 1 or params[0] not in Direccio
+            params is None or len(params) != 1 or params[0] not in Direccio
         ):
             raise ValueError("Paràmetres incorrectes")
 
