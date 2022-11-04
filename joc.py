@@ -54,7 +54,7 @@ class Rana(agent_lib.Agent):
 
     def start_bot(self, dir_bot):
         self.__dir_bot = dir_bot
-        self.__botant = 3
+        self.__botant = 2
 
     def fer_bot(self):
         self.__botant -= 1
@@ -187,7 +187,7 @@ class Laberint(joc.Joc):
             raise ValueError(f"Acció no existent en aquest joc: {accio}")
 
         if accio is not AccionsRana.ESPERAR and (
-            params is None or len(params) != 1 or params[0] not in Direccio
+            params is None or params not in Direccio
         ):
             raise ValueError("Paràmetres incorrectes")
 
@@ -199,10 +199,10 @@ class Laberint(joc.Joc):
                     oc_x, oc_y = agent_actual.posicio
                     nc_x, nc_y = Laberint._calcula_casella((oc_x, oc_y), direccio, 2)
             else:
-                agent_actual.start_bot(params[0])
+                agent_actual.start_bot(params)
         elif accio is AccionsRana.MOURE:
             oc_x, oc_y = agent_actual.posicio
-            nc_x, nc_y = Laberint._calcula_casella((oc_x, oc_y), params[0], 1)
+            nc_x, nc_y = Laberint._calcula_casella((oc_x, oc_y), params, 1)
 
         if nc_x is not None:
             if (not (8 > nc_y >= 0)) or (not (8 > nc_x >= 0)):
