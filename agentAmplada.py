@@ -1,11 +1,3 @@
-"""
-
-ClauPercepcio:
-    POSICIO = 0
-    OLOR = 1
-    PARETS = 2
-"""
-
 from ia_2022 import entorn
 import joc
 from entorn import AccionsRana
@@ -28,15 +20,15 @@ class Estat:
     def __hash__(self):
         return hash(tuple(self.__pos_agent))
 
-    @property
-    def info(self):
-        return self.__pos_agent
-
     def __lt__(self, other):
         return False
 
     def __eq__(self, other):
         return self.__pos_agent == other.get_pos_agent()
+
+    @property
+    def info(self):
+        return self.__pos_agent
 
     @property
     def pare(self):
@@ -47,26 +39,27 @@ class Estat:
         self.__pare = value
 
     def get_pos_agent(self):
+        """ Mètode que retorna la posició actual de l'agent """
         return self.__pos_agent
 
     def es_meta(self) -> bool:
+        """ Mètode que verifica si un estat es o no meta, en funció de la posició de l'agent i de la posició final """
         return (
             self.__pos_agent["Rana"][0] == self.__pos_pizza[0]
             and self.__pos_agent["Rana"][1] == self.__pos_pizza[1]
         )
 
     def es_valid(self):
-        """Retorn vertader si la posició està dins el tauler"""
-        # mirar si hi ha parets
-
-        for pared in self.__parets:
+        """ Mètode que verifica si un estat es o no vàlid"""
+        # Comprovam que l'agent no estigui en una casella paret
+        for paret in self.__parets:
             if (
-                self.__pos_agent["Rana"][0] == pared[0]
-                and self.__pos_agent["Rana"][1] == pared[1]
+                self.__pos_agent["Rana"][0] == paret[0]
+                and self.__pos_agent["Rana"][1] == paret[1]
             ):
                 return False
 
-        # mirar si esta dins el tauler
+        # Comprovam que l'agent no estigui defora el tauler
         return (
             (self.__pos_agent["Rana"][0] <= 7)
             and (self.__pos_agent["Rana"][0] >= 0)
@@ -75,46 +68,58 @@ class Estat:
         )
 
     def calcular_f(self):
+        """ Mètode que calcula la f(n) """
         sum = 0
+
         for i in range(2):
             sum += abs(self.__pos_pizza[i] - self.__pos_agent["Rana"][i])
+
         return self.__pes + sum
 
     def generaFills(self):
-        movs = {"ESQUERRE": (-1, 0), "DRETA": (+1, 0), "DALT": (0, -1), "BAIX": (0, +1)}
-        claus = list(movs.keys())
+        """ Mètode que genera tot l'abre d'accions """
         fills = []
 
-        """
-        Cas 1: Moviments de desplaçament a caselles adjacents.
-        """
-        for i, m in enumerate(movs.values()):
-            coords = [sum(tup) for tup in zip(self.__pos_agent["Rana"], m)]
-            coord = {"Rana": coords}
-            # coords=[(0,0)]
+        moviments = {
+            "ESQUERRE": (-1, 0),
+            "DRETA": (+1, 0),
+            "DALT": (0, -1),
+            "BAIX": (0, +1),
+        }
+        claus = list(moviments.keys())
+
+        # Cas 1: Desplaçament a una casella adjacent, no diagonal
+        for i, m in enumerate(moviments.values()):
+            coordenades = [sum(tup) for tup in zip(self.__pos_agent["Rana"], m)]
+            moviment = {"Rana": coordenades}
             cost = self.__pes + MOURE
+
             actual = Estat(
                 self.__pos_pizza,
-                coord,
+                moviment,
                 self.__parets,
                 cost,
                 (self, (AccionsRana.MOURE, Direccio.__getitem__(claus[i]))),
             )
+
             if actual.es_valid():
                 fills.append(actual)
 
-        """
-        Cas 2: Moviments de desplaçament de 2 caselles en caselles
-        """
-        movs = {"ESQUERRE": (-2, 0), "DRETA": (+2, 0), "DALT": (0, -2), "BAIX": (0, +2)}
-        for i, m in enumerate(movs.values()):
-            coords = [sum(tup) for tup in zip(self.__pos_agent["Rana"], m)]
-            coord = {"Rana": coords}
+        # Cas 2: Desplaçament a dues caselles adjacents, no diagonal (botar paret)
+        moviments = {
+            "ESQUERRE": (-2, 0),
+            "DRETA": (+2, 0),
+            "DALT": (0, -2),
+            "BAIX": (0, +2),
+        }
+        for i, m in enumerate(moviments.values()):
+            coordenades = [sum(tup) for tup in zip(self.__pos_agent["Rana"], m)]
+            moviment = {"Rana": coordenades}
             cost = self.__pes + BOTAR
 
             actual = Estat(
                 self.__pos_pizza,
-                coord,
+                moviment,
                 self.__parets,
                 cost,
                 (self, (AccionsRana.BOTAR, Direccio.__getitem__(claus[i]))),
@@ -135,6 +140,7 @@ class Rana(joc.Rana):
         self.__botar = 0
 
     def _cerca(self, estat: Estat):
+        """ Mètode que realitza la cerca del cami òptim per arribar a l'estat meta; utilitzant l'algorisme de cerca no informada per amplada """
         self.__oberts = PriorityQueue()
         self.__tancats = set()
 
@@ -142,7 +148,6 @@ class Rana(joc.Rana):
         actual = None
 
         while not self.__oberts.empty():
-            # si un retorn no t'interessa li posam _S
             _, actual = self.__oberts.get()
             if actual in self.__tancats:
                 continue
@@ -180,18 +185,22 @@ class Rana(joc.Rana):
     ) -> entorn.Accio | tuple[entorn.Accio, object]:
         percepcions = percep.to_dict()
         claus = list(percepcions.keys())
-        # percep[claus[0]] = pizza, percep[claus[1]] = rana, percep[claus[2]] = paredes
+        # percep[claus[0]] = pizza, percep[claus[1]] = rana, percep[claus[2]] = paretes
         estat: Estat = Estat(percep[claus[0]], percep[claus[1]], percep[claus[2]])
 
+        # Si no tenim accions, les cercam
         if self.__accions is None:
             self._cerca(estat=estat)
             print(self.__accions)
 
+        # Si tenim les accions
         if self.__accions:
+            # Si acaba de botar, ha d'esperar
             if self.__botar > 0:
                 self.__botar -= 1
                 return AccionsRana.ESPERAR
 
+            # Si ha de botar o si ha de mourer-se a una casella adjacent
             else:
                 accio = self.__accions.pop()
 
@@ -199,5 +208,7 @@ class Rana(joc.Rana):
                     self.__botar = 2
 
                 return accio[0], accio[1]
+
+        # Sino esperam
         else:
             return AccionsRana.ESPERAR

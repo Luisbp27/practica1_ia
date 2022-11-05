@@ -1,4 +1,4 @@
-import agent
+import agentAmplada
 import joc
 import sys
 import os
@@ -7,7 +7,7 @@ sys.path.append(os.getcwd())
 
 
 def main():
-    rana = agent.Rana("Rana")
+    rana = agentAmplada.Rana("Rana")
     lab = joc.Laberint([rana], parets=True)
     lab.comencar()
 
