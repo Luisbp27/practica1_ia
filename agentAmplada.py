@@ -10,11 +10,10 @@ MOURE = 1
 
 
 class Estat:
-    def __init__(self, pos_pizza, pos_agent, parets, pes=0, pare=None):
+    def __init__(self, pos_pizza, pos_agent, parets, pare=None):
         self.__pos_pizza = pos_pizza
         self.__pos_agent = pos_agent
         self.__parets = parets
-        self.__pes = pes
         self.__pare = pare
 
     def __hash__(self):
@@ -67,66 +66,51 @@ class Estat:
             and (self.__pos_agent["Rana"][1] >= 0)
         )
 
-    def calcular_f(self):
-        """ Mètode que calcula la f(n) """
-        sum = 0
-
-        for i in range(2):
-            sum += abs(self.__pos_pizza[i] - self.__pos_agent["Rana"][i])
-
-        return self.__pes + sum
 
     def generaFills(self):
         """ Mètode que genera tot l'abre d'accions """
         fills = []
 
-        moviments = {
-            "ESQUERRE": (-1, 0),
-            "DRETA": (+1, 0),
-            "DALT": (0, -1),
-            "BAIX": (0, +1),
-        }
-        claus = list(moviments.keys())
+        buit = self.__info.find(" ")
 
-        # Cas 1: Desplaçament a una casella adjacent, no diagonal
-        for i, m in enumerate(moviments.values()):
-            coordenades = [sum(tup) for tup in zip(self.__pos_agent["Rana"], m)]
-            moviment = {"Rana": coordenades}
-            cost = self.__pes + MOURE
+        despls = [buit - 1, buit + 1]
+        for desp in despls:
+            if -1 < desp < len(self.__info):
+                info_aux = list(self.__info)
+                info_aux[buit] = self.__info[desp]
+                info_aux[desp] = " "
 
-            actual = Estat(
-                self.__pos_pizza,
-                moviment,
-                self.__parets,
-                cost,
-                (self, (AccionsRana.MOURE, Direccio.__getitem__(claus[i]))),
+                fills.append(
+                    Estat(
+                        "".join(info_aux),
+                        self.__pes + 1,
+                        (self, (AccionsRana.MOURE, desp)),
+                    )
+                )
+
+        for i in range(len(self.__info)):
+            info_aux = list(self.__info)
+            info_aux[i] = self.gira(info_aux[i])
+            fills.append(
+                Estat(
+                    "".join(info_aux), self.__pes + 2, (self, (AccionsRana.GIRAR, i))
+                )
             )
 
-            if actual.es_valid():
-                fills.append(actual)
+        despls = [buit - 2, buit + 2]
+        for desp in despls:
+            if -1 < desp < len(self.__info):
+                info_aux = list(self.__info)
+                info_aux[buit] = self.gira(self.__info[desp])
+                info_aux[desp] = " "
 
-        # Cas 2: Desplaçament a dues caselles adjacents, no diagonal (botar paret)
-        moviments = {
-            "ESQUERRE": (-2, 0),
-            "DRETA": (+2, 0),
-            "DALT": (0, -2),
-            "BAIX": (0, +2),
-        }
-        for i, m in enumerate(moviments.values()):
-            coordenades = [sum(tup) for tup in zip(self.__pos_agent["Rana"], m)]
-            moviment = {"Rana": coordenades}
-            cost = self.__pes + BOTAR
-
-            actual = Estat(
-                self.__pos_pizza,
-                moviment,
-                self.__parets,
-                cost,
-                (self, (AccionsRana.BOTAR, Direccio.__getitem__(claus[i]))),
-            )
-
-            if actual.es_valid():
-                fills.append(actual)
+                fills.append(
+                    Estat(
+                        "".join(info_aux),
+                        self.__pes + 2,
+                        (self, (AccionsRana.BOTAR, desp)),
+                    )
+                )
 
         return fills
 
@@ -140,15 +124,15 @@ class Rana(joc.Rana):
         self.__botar = 0
 
     def _cerca(self, estat: Estat):
-        """ Mètode que realitza la cerca del cami òptim per arribar a l'estat meta; utilitzant l'algorisme de cerca no informada per amplada """
-        self.__oberts = PriorityQueue()
+        self.__oberts = []
         self.__tancats = set()
 
-        self.__oberts.put((estat.calcular_f(), estat))
+        self.__oberts.append(estat)
         actual = None
+        while len(self.__oberts) > 0:
+            actual = self.__oberts[0]
+            self.__oberts = self.__oberts[1:]
 
-        while not self.__oberts.empty():
-            _, actual = self.__oberts.get()
             if actual in self.__tancats:
                 continue
 
@@ -156,15 +140,17 @@ class Rana(joc.Rana):
                 self.__tancats.add(actual)
                 continue
 
-            estats_fills = actual.generaFills()
+            estats_fills = actual.genera_fill()
 
             if actual.es_meta():
                 break
 
             for estat_f in estats_fills:
-                self.__oberts.put((estat_f.calcular_f(), estat_f))
+                self.__oberts.append(estat_f)
 
             self.__tancats.add(actual)
+        if actual is None:
+            raise ValueError("Error impossible")
 
         if actual.es_meta():
             accions = []
@@ -172,10 +158,11 @@ class Rana(joc.Rana):
 
             while iterador.pare is not None:
                 pare, accio = iterador.pare
+
                 accions.append(accio)
                 iterador = pare
-
             self.__accions = accions
+            return True
 
     def pinta(self, display):
         pass
