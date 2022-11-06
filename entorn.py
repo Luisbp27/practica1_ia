@@ -1,4 +1,5 @@
 import enum
+
 from ia_2022 import entorn
 
 

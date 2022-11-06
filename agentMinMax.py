@@ -42,11 +42,11 @@ class Estat:
         """Mètode que retorna la posició actual de l'agent"""
         return self.__pos_agent
 
-    def es_meta(self) -> bool:
+    def es_meta(self, nom: str) -> bool:
         """Mètode que verifica si un estat es o no meta, en funció de la posició de l'agent i de la posició final"""
         return (
-            self.__pos_agent["Rana"][0] == self.__pos_pizza[0]
-            and self.__pos_agent["Rana"][1] == self.__pos_pizza[1]
+            self.__pos_agent[nom][0] == self.__pos_pizza[0]
+            and self.__pos_agent[nom][1] == self.__pos_pizza[1]
         )
 
     def es_valid(self):
@@ -67,16 +67,15 @@ class Estat:
             and (self.__pos_agent["Rana"][1] >= 0)
         )
 
-    def calcular_f(self):
-        """Mètode que calcula la f(n)"""
+    def calcular_heuristica(self):
         sum = 0
 
         for i in range(2):
             sum += abs(self.__pos_pizza[i] - self.__pos_agent["Rana"][i])
 
-        return self.__pes + sum
+        return sum
 
-    def generaFills(self):
+    def genera_fills(self):
         """Mètode que genera tot l'abre d'accions"""
         fills = []
 
@@ -92,13 +91,12 @@ class Estat:
         for i, m in enumerate(moviments.values()):
             coordenades = [sum(tup) for tup in zip(self.__pos_agent["Rana"], m)]
             moviment = {"Rana": coordenades}
-            cost = self.__pes + MOURE
 
             actual = Estat(
                 self.__pos_pizza,
                 moviment,
                 self.__parets,
-                cost,
+                self.calcular_heuristica(),
                 (self, (AccionsRana.MOURE, Direccio.__getitem__(claus[i]))),
             )
 
@@ -115,13 +113,12 @@ class Estat:
         for i, m in enumerate(moviments.values()):
             coordenades = [sum(tup) for tup in zip(self.__pos_agent["Rana"], m)]
             moviment = {"Rana": coordenades}
-            cost = self.__pes + BOTAR
 
             actual = Estat(
                 self.__pos_pizza,
                 moviment,
                 self.__parets,
-                cost,
+                self.calcular_heuristica(),
                 (self, (AccionsRana.BOTAR, Direccio.__getitem__(claus[i]))),
             )
 
@@ -130,52 +127,33 @@ class Estat:
 
         return fills
 
+    def evaluar(self, estat):
+        if estat.es_meta():
+            return self.__puntuacio
+
 
 class Rana(joc.Rana):
-    def __init__(self, *args, **kwargs):
-        super(Rana, self).__init__(*args, **kwargs)
+    def __init__(self, nom, *args, **kwargs):
+        super(Rana, self).__init__(nom, *args, **kwargs)
+
         self.__accions = None
-        self.__tancats = None
-        self.__oberts = None
         self.__botar = 0
+        self.__puntuacio = 0
+        self.__nom = nom
 
-    def _cerca(self, estat: Estat):
-        """Mètode que realitza la cerca del cami òptim per arribar a l'estat meta; utilitzant l'algorisme de cerca no informada per amplada"""
-        self.__oberts = PriorityQueue()
-        self.__tancats = set()
+    def _cerca(self, estat: Estat, torn_max, nom: str):
+        """Mètode que realitza la cerca del cami òptim per arribar a l'estat meta; utilitzant l'algorisme de cerca Min i Max"""
+        score = estat.evaluar(estat)
+        if score:
+            return score
 
-        self.__oberts.put((estat.calcular_f(), estat))
-        actual = None
-
-        while not self.__oberts.empty():
-            _, actual = self.__oberts.get()
-            if actual in self.__tancats:
-                continue
-
-            if not actual.es_valid():
-                self.__tancats.add(actual)
-                continue
-
-            estats_fills = actual.generaFills()
-
-            if actual.es_meta():
-                break
-
-            for estat_f in estats_fills:
-                self.__oberts.put((estat_f.calcular_f(), estat_f))
-
-            self.__tancats.add(actual)
-
-        if actual.es_meta():
-            accions = []
-            iterador = actual
-
-            while iterador.pare is not None:
-                pare, accio = iterador.pare
-                accions.append(accio)
-                iterador = pare
-
-            self.__accions = accions
+        puntuacio_fills = [
+            self._cerca(estat, not torn_max, nom) for estat in estat.genera_fills()
+        ]
+        if torn_max:
+            return max(puntuacio_fills)
+        else:
+            return min(puntuacio_fills)
 
     def pinta(self, display):
         pass
@@ -190,7 +168,7 @@ class Rana(joc.Rana):
 
         # Si no tenim accions, les cercam
         if self.__accions is None:
-            self._cerca(estat=estat)
+            self._cerca(estat=estat, torn_max=True)
             print(self.__accions)
 
         # Si tenim les accions

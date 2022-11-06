@@ -1,6 +1,5 @@
 import enum
 import random
-
 import pygame
 
 from ia_2022 import agent as agent_lib

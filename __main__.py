@@ -1,5 +1,6 @@
 import agentAmplada
 import agentAEstrella
+import agentMinMax
 import joc
 import sys
 import os
@@ -8,8 +9,9 @@ sys.path.append(os.getcwd())
 
 
 def main():
-    rana = agentAEstrella.Rana("Rana")
-    lab = joc.Laberint([rana], parets=True)
+    rana = agentMinMax.Rana("Rana")
+    rana2 = agentMinMax.Rana("Victor")
+    lab = joc.Laberint([rana, rana2], parets=True)
     lab.comencar()
 
 

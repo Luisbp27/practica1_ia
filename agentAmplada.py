@@ -38,18 +38,18 @@ class Estat:
         self.__pare = value
 
     def get_pos_agent(self):
-        """ Mètode que retorna la posició actual de l'agent """
+        """Mètode que retorna la posició actual de l'agent"""
         return self.__pos_agent
 
     def es_meta(self) -> bool:
-        """ Mètode que verifica si un estat es o no meta, en funció de la posició de l'agent i de la posició final """
+        """Mètode que verifica si un estat es o no meta, en funció de la posició de l'agent i de la posició final"""
         return (
             self.__pos_agent["Rana"][0] == self.__pos_pizza[0]
             and self.__pos_agent["Rana"][1] == self.__pos_pizza[1]
         )
 
     def es_valid(self):
-        """ Mètode que verifica si un estat es o no vàlid"""
+        """Mètode que verifica si un estat es o no vàlid"""
         # Comprovam que l'agent no estigui en una casella paret
         for paret in self.__parets:
             if (
@@ -66,51 +66,53 @@ class Estat:
             and (self.__pos_agent["Rana"][1] >= 0)
         )
 
-
-    def generaFills(self):
-        """ Mètode que genera tot l'abre d'accions """
+    def genera_fills(self):
+        """Mètode que genera tot l'abre d'accions"""
         fills = []
 
-        buit = self.__info.find(" ")
+        moviments = {
+            "ESQUERRE": (-1, 0),
+            "DRETA": (+1, 0),
+            "DALT": (0, -1),
+            "BAIX": (0, +1),
+        }
+        claus = list(moviments.keys())
 
-        despls = [buit - 1, buit + 1]
-        for desp in despls:
-            if -1 < desp < len(self.__info):
-                info_aux = list(self.__info)
-                info_aux[buit] = self.__info[desp]
-                info_aux[desp] = " "
+        # Cas 1: Desplaçament a una casella adjacent, no diagonal
+        for i, m in enumerate(moviments.values()):
+            coordenades = [sum(tup) for tup in zip(self.__pos_agent["Rana"], m)]
+            moviment = {"Rana": coordenades}
 
-                fills.append(
-                    Estat(
-                        "".join(info_aux),
-                        self.__pes + 1,
-                        (self, (AccionsRana.MOURE, desp)),
-                    )
-                )
-
-        for i in range(len(self.__info)):
-            info_aux = list(self.__info)
-            info_aux[i] = self.gira(info_aux[i])
-            fills.append(
-                Estat(
-                    "".join(info_aux), self.__pes + 2, (self, (AccionsRana.GIRAR, i))
-                )
+            actual = Estat(
+                self.__pos_pizza,
+                moviment,
+                self.__parets,
+                (self, (AccionsRana.MOURE, Direccio.__getitem__(claus[i]))),
             )
 
-        despls = [buit - 2, buit + 2]
-        for desp in despls:
-            if -1 < desp < len(self.__info):
-                info_aux = list(self.__info)
-                info_aux[buit] = self.gira(self.__info[desp])
-                info_aux[desp] = " "
+            if actual.es_valid():
+                fills.append(actual)
 
-                fills.append(
-                    Estat(
-                        "".join(info_aux),
-                        self.__pes + 2,
-                        (self, (AccionsRana.BOTAR, desp)),
-                    )
-                )
+        # Cas 2: Desplaçament a dues caselles adjacents, no diagonal (botar paret)
+        moviments = {
+            "ESQUERRE": (-2, 0),
+            "DRETA": (+2, 0),
+            "DALT": (0, -2),
+            "BAIX": (0, +2),
+        }
+        for i, m in enumerate(moviments.values()):
+            coordenades = [sum(tup) for tup in zip(self.__pos_agent["Rana"], m)]
+            moviment = {"Rana": coordenades}
+
+            actual = Estat(
+                self.__pos_pizza,
+                moviment,
+                self.__parets,
+                (self, (AccionsRana.BOTAR, Direccio.__getitem__(claus[i]))),
+            )
+
+            if actual.es_valid():
+                fills.append(actual)
 
         return fills
 
@@ -128,7 +130,7 @@ class Rana(joc.Rana):
         self.__tancats = set()
 
         self.__oberts.append(estat)
-        actual = None
+        actual: Estat = None
         while len(self.__oberts) > 0:
             actual = self.__oberts[0]
             self.__oberts = self.__oberts[1:]
@@ -140,7 +142,7 @@ class Rana(joc.Rana):
                 self.__tancats.add(actual)
                 continue
 
-            estats_fills = actual.genera_fill()
+            estats_fills = actual.genera_fills()
 
             if actual.es_meta():
                 break
