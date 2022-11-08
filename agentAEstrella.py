@@ -10,7 +10,8 @@ MOURE = 1
 
 
 class Estat:
-    def __init__(self, pos_pizza, pos_agent, parets, pes=0, pare=None):
+    def __init__(self, nom, pos_pizza, pos_agent, parets, pes=0, pare=None):
+        self.__nom_agent = nom
         self.__pos_pizza = pos_pizza
         self.__pos_agent = pos_agent
         self.__parets = parets
@@ -74,7 +75,7 @@ class Estat:
         for i in range(2):
             suma += abs(self.__pos_pizza[i] - self.__pos_agent["Luis"][i])
 
-        return  suma + self.__pes
+        return suma + self.__pes
 
     def genera_fills(self):
         """Mètode que genera tot l'abre d'accions"""
@@ -95,6 +96,7 @@ class Estat:
             cost = self.__pes + MOURE
 
             actual = Estat(
+                self.__nom_agent,
                 self.__pos_pizza,
                 moviment,
                 self.__parets,
@@ -119,6 +121,7 @@ class Estat:
             cost = self.__pes + BOTAR
 
             actual = Estat(
+                self.__nom_agent,
                 self.__pos_pizza,
                 moviment,
                 self.__parets,
@@ -135,6 +138,7 @@ class Estat:
 class Rana(joc.Rana):
     def __init__(self, *args, **kwargs):
         super(Rana, self).__init__(*args, **kwargs)
+        self.__nom = self.nom
         self.__accions = None
         self.__tancats = None
         self.__oberts = None
@@ -190,7 +194,9 @@ class Rana(joc.Rana):
         percepcions = percep.to_dict()
         claus = list(percepcions.keys())
         # percep[claus[0]] = pizza, percep[claus[1]] = rana, percep[claus[2]] = parets
-        estat: Estat = Estat(percep[claus[0]], percep[claus[1]], percep[claus[2]])
+        estat: Estat = Estat(
+            self.__nom, percep[claus[0]], percep[claus[1]], percep[claus[2]]
+        )
 
         # Si no tenim accions, les cercam
         if self.__accions is None:

@@ -29,8 +29,9 @@ def main():
         case 4:
             rana = agentGenetic.Rana("Luis")
             lab = joc.Laberint([rana], parets=True)
-    
+
     lab.comencar()
+
 
 def menu():
     print("\n Elegeix l'algorisme de cerca que vols utilitzar: ")
@@ -39,6 +40,7 @@ def menu():
     print("2. A*")
     print("3. Min i Max")
     print("4. Genètic")
+
 
 if __name__ == "__main__":
     main()
