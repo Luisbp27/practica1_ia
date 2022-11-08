@@ -75,41 +75,67 @@ class Estat:
 
         return sum
 
-    def genera_fills(self, botar):
+    def get_altre_agent(self):
+        agent = list(self.__pos_agent.keys())
+
+        for i in range(2):
+            if(self.__nom != agent[i]):
+                return agent[i]
+                
+        return None
+
+    def genera_fills(self):
         """Mètode que genera tot l'abre d'accions"""
+        claus = list(self.__pos_agent.keys())
+
         fills = []
 
-        # Cas en el que no hi ha que botar
-        if botar == 0:
-            moviments = {
-                "ESQUERRE": (-1, 0),
-                "DRETA": (+1, 0),
-                "DALT": (0, -1),
-                "BAIX": (0, +1),
-            }
-
-        # Cas en el que hi ha que botar
-        else:
-            moviments = {
-                "ESQUERRE": (-2, 0),
-                "DRETA": (+2, 0),
-                "DALT": (0, -2),
-                "BAIX": (0, +2),
-            }
-
+        moviments = {
+            "ESQUERRE": (-1, 0),
+            "DRETA": (+1, 0),
+            "DALT": (0, -1),
+            "BAIX": (0, +1),
+        }
         claus = list(moviments.keys())
-        for i, m in enumerate(moviments.values()):
-            coordenades = [
-                sum(tup) for tup in zip(self.__pos_agent[self.__nom_agent], m)
-            ]
 
+        # Cas 1: Desplaçament a una casella adjacent, no diagonal
+        for i, m in enumerate(moviments.values()):
+            coordenades = [sum(tup) for tup in zip(self.__pos_agent[self.__nom_agent], m)]
             moviment = {self.__nom_agent: coordenades}
+            agent2 = self.get_altre_agent()
+
             actual = Estat(
                 self.__nom_agent,
                 self.__pos_pizza,
                 moviment,
                 self.__parets,
+                cost,
                 (self, (AccionsRana.MOURE, Direccio.__getitem__(claus[i]))),
+            )
+
+            if actual.es_valid():
+                fills.append(actual)
+
+        # Cas 2: Desplaçament a dues caselles adjacents, no diagonal (botar paret)
+        moviments = {
+            "ESQUERRE": (-2, 0),
+            "DRETA": (+2, 0),
+            "DALT": (0, -2),
+            "BAIX": (0, +2),
+        }
+
+        for i, m in enumerate(moviments.values()):
+            coordenades = [sum(tup) for tup in zip(self.__pos_agent["Luis"], m)]
+            moviment = {"Luis": coordenades}
+            cost = self.__pes + BOTAR
+
+            actual = Estat(
+                self.__nom_agent,
+                self.__pos_pizza,
+                moviment,
+                self.__parets,
+                cost,
+                (self, (AccionsRana.BOTAR, Direccio.__getitem__(claus[i]))),
             )
 
             if actual.es_valid():
@@ -117,10 +143,11 @@ class Estat:
 
         return fills
 
-    def evaluar(self, estat):
-        if estat.es_meta():
+    def evaluar(self):
+        if self.es_meta():
             return self.__puntuacio
 
+        # Falta realitzar les puntuacions o comparacio
 
 class Rana(joc.Rana):
     def __init__(self, nom, *args, **kwargs):
@@ -128,22 +155,22 @@ class Rana(joc.Rana):
         self.__nom = self.nom
         self.__accions = None
         self.__botar = 0
-        self.__puntuacio = 0
+        self.__torn = 0
 
-    def _cerca(self, estat: Estat, torn_max):
+    def _cerca(self, estat: Estat, torn_max, profunditat):
         """Mètode que realitza la cerca del cami òptim per arribar a l'estat meta; utilitzant l'algorisme de cerca Min i Max"""
-        score = estat.evaluar(estat)
-        if score:
-            return score
+        score = estat.evaluar()
 
         puntuacio_fills = [
-            self._cerca(estat, not torn_max)
-            for estat in estat.genera_fills(self.__botar)
+            self._cerca(estat_fill, not torn_max, profunditat + 1)
+            for estat_fill in estat.genera_fills()
         ]
+        puntuacio = puntuacio_fills[0]
+
         if torn_max:
-            return max(puntuacio_fills)
+            return max(puntuacio), estat
         else:
-            return min(puntuacio_fills)
+            return min(puntuacio), estat
 
     def pinta(self, display):
         pass

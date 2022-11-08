@@ -46,8 +46,8 @@ class Estat:
     def es_meta(self) -> bool:
         """Mètode que verifica si un estat es o no meta, en funció de la posició de l'agent i de la posició final"""
         return (
-            self.__pos_agent["Luis"][0] == self.__pos_pizza[0]
-            and self.__pos_agent["Luis"][1] == self.__pos_pizza[1]
+            self.__pos_agent[self.__nom_agent][0] == self.__pos_pizza[0]
+            and self.__pos_agent[self.__nom_agent][1] == self.__pos_pizza[1]
         )
 
     def es_valid(self):
@@ -55,17 +55,17 @@ class Estat:
         # Comprovam que l'agent no estigui en una casella paret
         for paret in self.__parets:
             if (
-                self.__pos_agent["Luis"][0] == paret[0]
-                and self.__pos_agent["Luis"][1] == paret[1]
+                self.__pos_agent[self.__nom_agent][0] == paret[0]
+                and self.__pos_agent[self.__nom_agent][1] == paret[1]
             ):
                 return False
 
         # Comprovam que l'agent no estigui defora el tauler
         return (
-            (self.__pos_agent["Luis"][0] <= 7)
-            and (self.__pos_agent["Luis"][0] >= 0)
-            and (self.__pos_agent["Luis"][1] <= 7)
-            and (self.__pos_agent["Luis"][1] >= 0)
+            (self.__pos_agent[self.__nom_agent][0] <= 7)
+            and (self.__pos_agent[self.__nom_agent][0] >= 0)
+            and (self.__pos_agent[self.__nom_agent][1] <= 7)
+            and (self.__pos_agent[self.__nom_agent][1] >= 0)
         )
 
     def calcular_f(self):
@@ -73,7 +73,7 @@ class Estat:
         suma = 0
 
         for i in range(2):
-            suma += abs(self.__pos_pizza[i] - self.__pos_agent["Luis"][i])
+            suma += abs(self.__pos_pizza[i] - self.__pos_agent[self.__nom_agent][i])
 
         return suma + self.__pes
 
@@ -91,8 +91,8 @@ class Estat:
 
         # Cas 1: Desplaçament a una casella adjacent, no diagonal
         for i, m in enumerate(moviments.values()):
-            coordenades = [sum(tup) for tup in zip(self.__pos_agent["Luis"], m)]
-            moviment = {"Luis": coordenades}
+            coordenades = [sum(tup) for tup in zip(self.__pos_agent[self.__nom_agent], m)]
+            moviment = {self.__nom_agent: coordenades}
             cost = self.__pes + MOURE
 
             actual = Estat(
@@ -116,8 +116,8 @@ class Estat:
         }
 
         for i, m in enumerate(moviments.values()):
-            coordenades = [sum(tup) for tup in zip(self.__pos_agent["Luis"], m)]
-            moviment = {"Luis": coordenades}
+            coordenades = [sum(tup) for tup in zip(self.__pos_agent[self.__nom_agent], m)]
+            moviment = {self.__nom_agent: coordenades}
             cost = self.__pes + BOTAR
 
             actual = Estat(
