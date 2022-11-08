@@ -10,7 +10,8 @@ MOURE = 1
 
 
 class Estat:
-    def __init__(self, pos_pizza, pos_agent, parets, pes=0, pare=None):
+    def __init__(self, nom, pos_pizza, pos_agent, parets, pes=0, pare=None):
+        self.__nom_agent = nom
         self.__pos_pizza = pos_pizza
         self.__pos_agent = pos_agent
         self.__parets = parets
@@ -45,8 +46,8 @@ class Estat:
     def es_meta(self) -> bool:
         """Mètode que verifica si un estat es o no meta, en funció de la posició de l'agent i de la posició final"""
         return (
-            self.__pos_agent["Rana"][0] == self.__pos_pizza[0]
-            and self.__pos_agent["Rana"][1] == self.__pos_pizza[1]
+            self.__pos_agent[self.__nom_agent][0] == self.__pos_pizza[0]
+            and self.__pos_agent[self.__nom_agent][1] == self.__pos_pizza[1]
         )
 
     def es_valid(self):
@@ -54,17 +55,17 @@ class Estat:
         # Comprovam que l'agent no estigui en una casella paret
         for paret in self.__parets:
             if (
-                self.__pos_agent["Rana"][0] == paret[0]
-                and self.__pos_agent["Rana"][1] == paret[1]
+                self.__pos_agent[self.__nom_agent][0] == paret[0]
+                and self.__pos_agent[self.__nom_agent][1] == paret[1]
             ):
                 return False
 
         # Comprovam que l'agent no estigui defora el tauler
         return (
-            (self.__pos_agent["Rana"][0] <= 7)
-            and (self.__pos_agent["Rana"][0] >= 0)
-            and (self.__pos_agent["Rana"][1] <= 7)
-            and (self.__pos_agent["Rana"][1] >= 0)
+            (self.__pos_agent[self.__nom_agent][0] <= 7)
+            and (self.__pos_agent[self.__nom_agent][0] >= 0)
+            and (self.__pos_agent[self.__nom_agent][1] <= 7)
+            and (self.__pos_agent[self.__nom_agent][1] >= 0)
         )
 
     def calcular_f(self):
@@ -72,7 +73,7 @@ class Estat:
         sum = 0
 
         for i in range(2):
-            sum += abs(self.__pos_pizza[i] - self.__pos_agent["Rana"][i])
+            sum += abs(self.__pos_pizza[i] - self.__pos_agent[self.__nom_agent][i])
 
         return self.__pes + sum
 
@@ -80,7 +81,7 @@ class Estat:
         """Mètode que genera tot l'abre d'accions"""
         fills = []
 
-        if botar==0:
+        if botar == 0:
             moviments = {
                 "ESQUERRE": (-1, 0),
                 "DRETA": (+1, 0),
@@ -89,18 +90,18 @@ class Estat:
             }
         else:
             moviments = {
-            "ESQUERRE": (-2, 0),
-            "DRETA": (+2, 0),
-            "DALT": (0, -2),
-            "BAIX": (0, +2),
-        }
+                "ESQUERRE": (-2, 0),
+                "DRETA": (+2, 0),
+                "DALT": (0, -2),
+                "BAIX": (0, +2),
+            }
 
         claus = list(moviments.keys())
 
         # Cas 1: Desplaçament a una casella adjacent, no diagonal
         for i, m in enumerate(moviments.values()):
-            coordenades = [sum(tup) for tup in zip(self.__pos_agent["Rana"], m)]
-            moviment = {"Rana": coordenades}
+            coordenades = [sum(tup) for tup in zip(self.__pos_agent[self.__nom_agent], m)]
+            moviment = {self.__nom_agent: coordenades}
             cost = self.__pes + MOURE
 
             actual = Estat(
@@ -120,6 +121,7 @@ class Estat:
 class Rana(joc.Rana):
     def __init__(self, *args, **kwargs):
         super(Rana, self).__init__(*args, **kwargs)
+        self.__nom = self.nom
         self.__accions = None
         self.__tancats = None
         self.__oberts = None
@@ -171,8 +173,8 @@ class Rana(joc.Rana):
     ) -> entorn.Accio | tuple[entorn.Accio, object]:
         percepcions = percep.to_dict()
         claus = list(percepcions.keys())
-        # percep[claus[0]] = pizza, percep[claus[1]] = rana, percep[claus[2]] = paretes
-        estat: Estat = Estat(percep[claus[0]], percep[claus[1]], percep[claus[2]])
+        # percep[claus[0]] = pizza, percep[claus[1]] = rana, percep[claus[2]] = parets
+        estat: Estat = Estat(self.__nom, percep[claus[0]], percep[claus[1]], percep[claus[2]])
 
         # Si no tenim accions, les cercam
         if self.__accions is None:
