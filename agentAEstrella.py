@@ -76,16 +76,25 @@ class Estat:
 
         return self.__pes + sum
 
-    def generaFills(self):
+    def generaFills(self, botar):
         """Mètode que genera tot l'abre d'accions"""
         fills = []
 
-        moviments = {
-            "ESQUERRE": (-1, 0),
-            "DRETA": (+1, 0),
-            "DALT": (0, -1),
-            "BAIX": (0, +1),
+        if botar==0:
+            moviments = {
+                "ESQUERRE": (-1, 0),
+                "DRETA": (+1, 0),
+                "DALT": (0, -1),
+                "BAIX": (0, +1),
+            }
+        else:
+            moviments = {
+            "ESQUERRE": (-2, 0),
+            "DRETA": (+2, 0),
+            "DALT": (0, -2),
+            "BAIX": (0, +2),
         }
+
         claus = list(moviments.keys())
 
         # Cas 1: Desplaçament a una casella adjacent, no diagonal
@@ -100,29 +109,6 @@ class Estat:
                 self.__parets,
                 cost,
                 (self, (AccionsRana.MOURE, Direccio.__getitem__(claus[i]))),
-            )
-
-            if actual.es_valid():
-                fills.append(actual)
-
-        # Cas 2: Desplaçament a dues caselles adjacents, no diagonal (botar paret)
-        moviments = {
-            "ESQUERRE": (-2, 0),
-            "DRETA": (+2, 0),
-            "DALT": (0, -2),
-            "BAIX": (0, +2),
-        }
-        for i, m in enumerate(moviments.values()):
-            coordenades = [sum(tup) for tup in zip(self.__pos_agent["Rana"], m)]
-            moviment = {"Rana": coordenades}
-            cost = self.__pes + BOTAR
-
-            actual = Estat(
-                self.__pos_pizza,
-                moviment,
-                self.__parets,
-                cost,
-                (self, (AccionsRana.BOTAR, Direccio.__getitem__(claus[i]))),
             )
 
             if actual.es_valid():
@@ -156,7 +142,7 @@ class Rana(joc.Rana):
                 self.__tancats.add(actual)
                 continue
 
-            estats_fills = actual.generaFills()
+            estats_fills = actual.generaFills(self.__botar)
 
             if actual.es_meta():
                 break

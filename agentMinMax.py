@@ -10,11 +10,10 @@ MOURE = 1
 
 
 class Estat:
-    def __init__(self, pos_pizza, pos_agent, parets, pes=0, pare=None):
+    def __init__(self, pos_pizza, pos_agent, parets, pare=None):
         self.__pos_pizza = pos_pizza
         self.__pos_agent = pos_agent
         self.__parets = parets
-        self.__pes = pes
         self.__pare = pare
 
     def __hash__(self):
@@ -54,8 +53,8 @@ class Estat:
         # Comprovam que l'agent no estigui en una casella paret
         for paret in self.__parets:
             if (
-                self.__pos_agent["Rana"][0] == paret[0]
-                and self.__pos_agent["Rana"][1] == paret[1]
+                self.__pos_agent[self.nom][0] == paret[0]
+                and self.__pos_agent[self.nom][1] == paret[1]
             ):
                 return False
 
@@ -71,7 +70,7 @@ class Estat:
         sum = 0
 
         for i in range(2):
-            sum += abs(self.__pos_pizza[i] - self.__pos_agent["Rana"][i])
+            sum += abs(self.__pos_pizza[i] - self.__pos_agent[self.nom][i])
 
         return sum
 
@@ -89,7 +88,7 @@ class Estat:
 
         # Cas 1: Desplaçament a una casella adjacent, no diagonal
         for i, m in enumerate(moviments.values()):
-            coordenades = [sum(tup) for tup in zip(self.__pos_agent["Rana"], m)]
+            coordenades = [sum(tup) for tup in zip(self.__pos_agent[self.nom], m)]
             moviment = {"Rana": coordenades}
 
             actual = Estat(
@@ -111,7 +110,7 @@ class Estat:
             "BAIX": (0, +2),
         }
         for i, m in enumerate(moviments.values()):
-            coordenades = [sum(tup) for tup in zip(self.__pos_agent["Rana"], m)]
+            coordenades = [sum(tup) for tup in zip(self.__pos_agent[self.nom], m)]
             moviment = {"Rana": coordenades}
 
             actual = Estat(
@@ -139,7 +138,6 @@ class Rana(joc.Rana):
         self.__accions = None
         self.__botar = 0
         self.__puntuacio = 0
-        self.__nom = nom
 
     def _cerca(self, estat: Estat, torn_max, nom: str):
         """Mètode que realitza la cerca del cami òptim per arribar a l'estat meta; utilitzant l'algorisme de cerca Min i Max"""

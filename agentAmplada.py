@@ -44,8 +44,8 @@ class Estat:
     def es_meta(self) -> bool:
         """Mètode que verifica si un estat es o no meta, en funció de la posició de l'agent i de la posició final"""
         return (
-            self.__pos_agent["Rana"][0] == self.__pos_pizza[0]
-            and self.__pos_agent["Rana"][1] == self.__pos_pizza[1]
+            self.__pos_agent[Rana.nom][0] == self.__pos_pizza[0]
+            and self.__pos_agent[Rana.nom][1] == self.__pos_pizza[1]
         )
 
     def es_valid(self):
@@ -53,62 +53,51 @@ class Estat:
         # Comprovam que l'agent no estigui en una casella paret
         for paret in self.__parets:
             if (
-                self.__pos_agent["Rana"][0] == paret[0]
-                and self.__pos_agent["Rana"][1] == paret[1]
+                self.__pos_agent[Rana.nom][0] == paret[0]
+                and self.__pos_agent[Rana.nom][1] == paret[1]
             ):
                 return False
 
         # Comprovam que l'agent no estigui defora el tauler
         return (
-            (self.__pos_agent["Rana"][0] <= 7)
-            and (self.__pos_agent["Rana"][0] >= 0)
-            and (self.__pos_agent["Rana"][1] <= 7)
-            and (self.__pos_agent["Rana"][1] >= 0)
+            (self.__pos_agent[Rana.nom][0] <= 7)
+            and (self.__pos_agent[Rana.nom][0] >= 0)
+            and (self.__pos_agent[Rana.nom][1] <= 7)
+            and (self.__pos_agent[Rana.nom][1] >= 0)
         )
 
-    def genera_fills(self):
+    def genera_fills(self, botar):
         """Mètode que genera tot l'abre d'accions"""
         fills = []
 
-        moviments = {
-            "ESQUERRE": (-1, 0),
-            "DRETA": (+1, 0),
-            "DALT": (0, -1),
-            "BAIX": (0, +1),
-        }
+        # Cas en el que no hi ha que botar
+        if botar == 0:
+            moviments = {
+                "ESQUERRE": (-1, 0),
+                "DRETA": (+1, 0),
+                "DALT": (0, -1),
+                "BAIX": (0, +1),
+            }
+        # Cas en el que hi ha que botar
+        else:
+            moviments = {
+                "ESQUERRE": (-2, 0),
+                "DRETA": (+2, 0),
+                "DALT": (0, -2),
+                "BAIX": (0, +2),
+            }
+
         claus = list(moviments.keys())
 
-        # Cas 1: Desplaçament a una casella adjacent, no diagonal
         for i, m in enumerate(moviments.values()):
-            coordenades = [sum(tup) for tup in zip(self.__pos_agent["Rana"], m)]
-            moviment = {"Rana": coordenades}
+            coordenades = [sum(tup) for tup in zip(self.__pos_agent[Rana.nom], m)]
+            moviment = {Rana.nom: coordenades}
 
             actual = Estat(
                 self.__pos_pizza,
                 moviment,
                 self.__parets,
                 (self, (AccionsRana.MOURE, Direccio.__getitem__(claus[i]))),
-            )
-
-            if actual.es_valid():
-                fills.append(actual)
-
-        # Cas 2: Desplaçament a dues caselles adjacents, no diagonal (botar paret)
-        moviments = {
-            "ESQUERRE": (-2, 0),
-            "DRETA": (+2, 0),
-            "DALT": (0, -2),
-            "BAIX": (0, +2),
-        }
-        for i, m in enumerate(moviments.values()):
-            coordenades = [sum(tup) for tup in zip(self.__pos_agent["Rana"], m)]
-            moviment = {"Rana": coordenades}
-
-            actual = Estat(
-                self.__pos_pizza,
-                moviment,
-                self.__parets,
-                (self, (AccionsRana.BOTAR, Direccio.__getitem__(claus[i]))),
             )
 
             if actual.es_valid():
@@ -142,7 +131,7 @@ class Rana(joc.Rana):
                 self.__tancats.add(actual)
                 continue
 
-            estats_fills = actual.genera_fills()
+            estats_fills = actual.genera_fills(self.__botar)
 
             if actual.es_meta():
                 break
