@@ -9,8 +9,7 @@ MOURE = 1
 
 
 class Estat:
-    def __init__(self, nom, pos_pizza, pos_agent, parets, pare=None):
-        self.__nom_agent = nom
+    def __init__(self, pos_pizza, pos_agent, parets, pare=None):
         self.__pos_pizza = pos_pizza
         self.__pos_agent = pos_agent
         self.__parets = parets
@@ -44,8 +43,8 @@ class Estat:
     def es_meta(self) -> bool:
         """Mètode que verifica si un estat es o no meta, en funció de la posició de l'agent i de la posició final"""
         return (
-            self.__pos_agent[self.__nom_agent][0] == self.__pos_pizza[0]
-            and self.__pos_agent[self.__nom_agent][1] == self.__pos_pizza[1]
+            self.__pos_agent["Luis"][0] == self.__pos_pizza[0]
+            and self.__pos_agent["Luis"][1] == self.__pos_pizza[1]
         )
 
     def es_valid(self):
@@ -53,54 +52,62 @@ class Estat:
         # Comprovam que l'agent no estigui en una casella paret
         for paret in self.__parets:
             if (
-                self.__pos_agent[self.__nom_agent][0] == paret[0]
-                and self.__pos_agent[self.__nom_agent][1] == paret[1]
+                self.__pos_agent["Luis"][0] == paret[0]
+                and self.__pos_agent["Luis"][1] == paret[1]
             ):
                 return False
 
         # Comprovam que l'agent no estigui defora el tauler
         return (
-            (self.__pos_agent[self.__nom_agent][0] <= 7)
-            and (self.__pos_agent[self.__nom_agent][0] >= 0)
-            and (self.__pos_agent[self.__nom_agent][1] <= 7)
-            and (self.__pos_agent[self.__nom_agent][1] >= 0)
+            (self.__pos_agent["Luis"][0] <= 7)
+            and (self.__pos_agent["Luis"][0] >= 0)
+            and (self.__pos_agent["Luis"][1] <= 7)
+            and (self.__pos_agent["Luis"][1] >= 0)
         )
 
-    def genera_fills(self, botar):
+    def genera_fills(self):
         """Mètode que genera tot l'abre d'accions"""
         fills = []
 
-        # Cas en el que no hi ha que botar
-        if botar == 0:
-            moviments = {
-                "ESQUERRE": (-1, 0),
-                "DRETA": (+1, 0),
-                "DALT": (0, -1),
-                "BAIX": (0, +1),
-            }
-        # Cas en el que hi ha que botar
-        else:
-            moviments = {
-                "ESQUERRE": (-2, 0),
-                "DRETA": (+2, 0),
-                "DALT": (0, -2),
-                "BAIX": (0, +2),
-            }
-
+        moviments = {
+            "ESQUERRE": (-1, 0),
+            "DRETA": (+1, 0),
+            "DALT": (0, -1),
+            "BAIX": (0, +1),
+        }
         claus = list(moviments.keys())
 
+        # Cas 1: Desplaçament a una casella adjacent, no diagonal
         for i, m in enumerate(moviments.values()):
-            coordenades = [
-                sum(tup) for tup in zip(self.__pos_agent[self.__nom_agent], m)
-            ]
-            moviment = {self.__nom_agent: coordenades}
+            coordenades = [sum(tup) for tup in zip(self.__pos_agent["Luis"], m)]
+            moviment = {"Luis": coordenades}
 
             actual = Estat(
-                self.__nom_agent,
                 self.__pos_pizza,
                 moviment,
                 self.__parets,
                 (self, (AccionsRana.MOURE, Direccio.__getitem__(claus[i]))),
+            )
+
+            if actual.es_valid():
+                fills.append(actual)
+
+        # Cas 2: Desplaçament a dues caselles adjacents, no diagonal (botar paret)
+        moviments = {
+            "ESQUERRE": (-2, 0),
+            "DRETA": (+2, 0),
+            "DALT": (0, -2),
+            "BAIX": (0, +2),
+        }
+        for i, m in enumerate(moviments.values()):
+            coordenades = [sum(tup) for tup in zip(self.__pos_agent["Luis"], m)]
+            moviment = {"Luis": coordenades}
+
+            actual = Estat(
+                self.__pos_pizza,
+                moviment,
+                self.__parets,
+                (self, (AccionsRana.BOTAR, Direccio.__getitem__(claus[i]))),
             )
 
             if actual.es_valid():
@@ -112,7 +119,6 @@ class Estat:
 class Rana(joc.Rana):
     def __init__(self, *args, **kwargs):
         super(Rana, self).__init__(*args, **kwargs)
-        self.__nom = self.nom
         self.__accions = None
         self.__tancats = None
         self.__oberts = None
@@ -135,7 +141,7 @@ class Rana(joc.Rana):
                 self.__tancats.add(actual)
                 continue
 
-            estats_fills = actual.genera_fills(self.__botar)
+            estats_fills = actual.genera_fills()
 
             if actual.es_meta():
                 break
@@ -170,7 +176,7 @@ class Rana(joc.Rana):
         claus = list(percepcions.keys())
         # percep[claus[0]] = pizza, percep[claus[1]] = rana, percep[claus[2]] = paretes
         estat: Estat = Estat(
-            self.__nom, percep[claus[0]], percep[claus[1]], percep[claus[2]]
+            percep[claus[0]], percep[claus[1]], percep[claus[2]]
         )
 
         # Si no tenim accions, les cercam
