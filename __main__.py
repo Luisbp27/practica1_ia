@@ -1,7 +1,7 @@
-import agentAmplada
-import agentAEstrella
-import agentMinMax
-import agentGenetic
+from agents import amplada 
+from agents import aEstrella
+from agents import minMax
+from agents import genetic
 import joc
 import sys
 import os
@@ -17,17 +17,17 @@ def main():
         case 0:
             raise SystemExit
         case 1:
-            rana = agentAmplada.Rana("Luis")
+            rana = amplada.Rana("Luis")
             lab = joc.Laberint([rana], parets=True)
         case 2:
-            rana = agentAEstrella.Rana("Luis")
+            rana = aEstrella.Rana("Luis")
             lab = joc.Laberint([rana], parets=True)
         case 3:
-            rana = agentMinMax.Rana("Luis")
-            rana2 = agentMinMax.Rana("Victor")
+            rana = minMax.Rana("Luis")
+            rana2 = minMax.Rana("Victor")
             lab = joc.Laberint([rana, rana2], parets=True)
         case 4:
-            rana = agentGenetic.Rana("Luis")
+            rana = genetic.Rana("Luis")
             lab = joc.Laberint([rana], parets=True)
 
     lab.comencar()
