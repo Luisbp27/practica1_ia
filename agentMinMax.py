@@ -2,12 +2,10 @@ from ia_2022 import entorn
 import joc
 from entorn import AccionsRana
 from entorn import Direccio
-from queue import PriorityQueue
 
 ESPERAR = 0.5
 BOTAR = 6
 MOURE = 1
-
 
 
 class Estat:
@@ -69,20 +67,21 @@ class Estat:
             and (self.__pos_agent[self.__nom_agent][1] >= 0)
         )
 
-    def calcular_heuristica(self, nom):
+    def calcular_puntuacion(self, nom):
         suma = 0
+        print(self.__pos_agent[nom][1])
 
         for i in range(2):
-            suma += abs(self.__pos_pizza[i] - self.__pos_agent[nom][i])
+            suma += abs(self.__pos_pizza[i] - self.__pos_agent[nom][1])
         
         return suma
 
     def calcular_puntuacio_agent(self):
         # Obtenim la puntuació de l'agent passat per paràmetre
         if self.__nom_agent == self.__nom_agent2:
-            puntuacio = self.calcular_heuristica(self.__nom_agent) - self.calcular_heuristica(self.__nom_agent2)
+            puntuacio = self.calcular_puntuacion(self.__nom_agent) - self.calcular_puntuacion(self.__nom_agent2)
         else:
-            puntuacio = self.calcular_heuristica(self.__nom_agent2) - self.calcular_heuristica(self.__nom_agent)
+            puntuacio = self.calcular_puntuacion(self.__nom_agent2) - self.calcular_puntuacion(self.__nom_agent)
 
         return puntuacio
 
