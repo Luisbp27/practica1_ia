@@ -11,10 +11,10 @@ MOURE = 1
 
 
 class Estat:
-    def __init__(self, nom,  pos_pizza, pos_agent, parets, pare=None):
+    def __init__(self, nom, nom2,  pos_pizza, pos_agent, parets, pare=None):
         self.__nom_agent = nom
+        self.__nom_agent2 = nom2
         self.__pos_agent = pos_agent
-        self.__nom_agent2 = list(pos_agent.keys())[1]
         self.__pos_pizza = pos_pizza
         self.__parets = parets
         self.__pare = pare
@@ -78,12 +78,11 @@ class Estat:
         return suma
 
     def calcular_puntuacio_agent(self):
-        agent2 = self.__nom_agent2
         # Obtenim la puntuació de l'agent passat per paràmetre
-        if self.__nom_agent == agent2:
-            puntuacio = self.calcular_heuristica(self.__nom_agent) - self.calcular_heuristica(agent2)
+        if self.__nom_agent == self.__nom_agent2:
+            puntuacio = self.calcular_heuristica(self.__nom_agent) - self.calcular_heuristica(self.__nom_agent2)
         else:
-            puntuacio = self.calcular_heuristica(agent2) - self.calcular_heuristica(self.__nom_agent)
+            puntuacio = self.calcular_heuristica(self.__nom_agent2) - self.calcular_heuristica(self.__nom_agent)
 
         return puntuacio
 
@@ -108,6 +107,7 @@ class Estat:
 
             actual = Estat(
                 self.__nom_agent,
+                self.__nom_agent2,
                 self.__pos_pizza,
                 moviment,
                 self.__parets,
@@ -131,6 +131,7 @@ class Estat:
 
             actual = Estat(
                 self.__nom_agent,
+                self.__nom_agent2,
                 self.__pos_pizza,
                 moviment,
                 self.__parets,
@@ -143,13 +144,11 @@ class Estat:
         return fills
 
     def evaluar(self):
-        print(f"Ev {list(self.__pos_agent.keys())}")
         return self.es_meta(), self.calcular_puntuacio_agent()
 
 class Rana(joc.Rana):
-    def __init__(self, nom, *args, **kwargs):
-        super(Rana, self).__init__(nom, *args, **kwargs)
-        self.__nom = self.nom
+    def __init__(self, *args, **kwargs):
+        super(Rana, self).__init__(*args, **kwargs)
         self.__accions = None
         self.__botar = 0
         self.__meta = 0
@@ -179,9 +178,9 @@ class Rana(joc.Rana):
         
         percepcions = percep.to_dict()
         claus = list(percepcions.keys())
-        # percep[claus[0]] = pizza, percep[claus[0, 1]] = rana, percep[claus[2]] = parets
+        # percep[claus[0]] = pizza, percep[claus[0, 1]] = pos rana, percep[claus[2]] = parets
         estat: Estat = Estat(
-            self.__nom, percep[claus[0]], percep[claus[1]], percep[claus[2]]
+            self.nom, list(percep[claus[1]].keys())[1], percep[claus[0]], percep[claus[1]], percep[claus[2]]
         )
 
         actual = self._cerca(estat, 0)[1]
