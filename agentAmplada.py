@@ -76,6 +76,7 @@ class Estat:
             "DALT": (0, -1),
             "BAIX": (0, +1),
         }
+
         claus = list(moviments.keys())
 
         # Cas 1: Desplaçament a una casella adjacent, no diagonal
@@ -103,6 +104,7 @@ class Estat:
             "DALT": (0, -2),
             "BAIX": (0, +2),
         }
+
         for i, m in enumerate(moviments.values()):
             coordenades = [
                 sum(tup) for tup in zip(self.__pos_agent[self.__nom_agent], m)
@@ -133,24 +135,29 @@ class Rana(joc.Rana):
         self.__botar = 0
 
     def _cerca(self, estat: Estat):
+        """"Mètode que realitza la cerca del primer camí fins a la porció de pizza, mitjançant una cerca per amplada"""
         self.__oberts = []
         self.__tancats = set()
 
         self.__oberts.append(estat)
         actual: Estat = None
+
+        # Mentres tinguem nodes a explorar, seguim executant el bucle
         while len(self.__oberts) > 0:
             actual = self.__oberts[0]
             self.__oberts = self.__oberts[1:]
 
-            if actual in self.__tancats:
+            # Si l'estat actual ja s'ha explorat o no és valid, executam la següent iteració
+            if (actual in self.__tancats):
                 continue
-
-            if not actual.es_valid():
+            elif not actual.es_valid():
                 self.__tancats.add(actual)
                 continue
 
+            # Generam els fills corresponents
             estats_fills = actual.genera_fills()
 
+            # Si tenim la solució, aturam l'execució de la funció
             if actual.es_meta():
                 break
 
@@ -159,9 +166,7 @@ class Rana(joc.Rana):
 
             self.__tancats.add(actual)
 
-        if actual is None:
-            raise ValueError("Error impossible")
-
+        # Si es troba solució, emmagatzemam el camí de l'arbre resultant
         if actual.es_meta():
             accions = []
             iterador = actual
@@ -171,7 +176,9 @@ class Rana(joc.Rana):
 
                 accions.append(accio)
                 iterador = pare
+
             self.__accions = accions
+
             return True
 
     def pinta(self, display):
