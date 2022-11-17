@@ -9,13 +9,13 @@ MOURE = 1
 
 
 class Estat:
-    def __init__(self, nom, nom2,  pos_pizza, pos_agent, parets, pare=None):
+    def __init__(self, nom, pos_pizza, pos_agent, parets, pare=None):
         self.__nom_agent = nom
-        self.__nom_agent2 = nom2
         self.__pos_agent = pos_agent
         self.__pos_pizza = pos_pizza
         self.__parets = parets
         self.__pare = pare
+        self.__nom_agent2 = None
 
     def __hash__(self):
         return hash(tuple(self.__pos_agent))
@@ -42,11 +42,12 @@ class Estat:
         """Mètode que retorna la posició actual de l'agent"""
         return self.__pos_agent
 
-    def es_meta(self) -> bool:
+    def es_meta(self, nom) -> bool:
         """Mètode que verifica si un estat es o no meta, en funció de la posició de l'agent i de la posició final"""
+
         return (
-            self.__pos_agent[self.__nom_agent][0] == self.__pos_pizza[0]
-            and self.__pos_agent[self.__nom_agent][1] == self.__pos_pizza[1]
+                self.__pos_agent[nom][0] == self.__pos_pizza[0]
+                and self.__pos_agent[nom][1] == self.__pos_pizza[1]
         )
 
     def es_valid(self):
@@ -54,41 +55,49 @@ class Estat:
         # Comprovam que l'agent no estigui en una casella paret
         for paret in self.__parets:
             if (
-                self.__pos_agent[self.__nom_agent][0] == paret[0]
-                and self.__pos_agent[self.__nom_agent][1] == paret[1]
+                    self.__pos_agent[self.__nom_agent][0] == paret[0]
+                    and self.__pos_agent[self.__nom_agent][1] == paret[1]
             ):
                 return False
 
         # Comprovam que l'agent no estigui defora el tauler
         return (
-            (self.__pos_agent[self.__nom_agent][0] <= 7)
-            and (self.__pos_agent[self.__nom_agent][0] >= 0)
-            and (self.__pos_agent[self.__nom_agent][1] <= 7)
-            and (self.__pos_agent[self.__nom_agent][1] >= 0)
+                (self.__pos_agent[self.__nom_agent][0] <= 7)
+                and (self.__pos_agent[self.__nom_agent][0] >= 0)
+                and (self.__pos_agent[self.__nom_agent][1] <= 7)
+                and (self.__pos_agent[self.__nom_agent][1] >= 0)
         )
+
+    def get_altre_agent(self):
+
+        claus = list(self.__pos_agent.keys())
+
+        for i in range(2):
+            if (self.__nom_agent != claus[i]):
+                self.__nom_agent2 = claus[i]
 
     def calcular_puntuacion(self, nom):
         suma = 0
-        print(self.__pos_agent[nom][1])
 
         for i in range(2):
-            suma += abs(self.__pos_pizza[i] - self.__pos_agent[nom][1])
-        
+            suma += abs(self.__pos_pizza[i] - self.__pos_agent[nom][i])
+
         return suma
 
-    def calcular_puntuacio_agent(self):
-        # Obtenim la puntuació de l'agent passat per paràmetre
-        if self.__nom_agent == self.__nom_agent2:
-            puntuacio = self.calcular_puntuacion(self.__nom_agent) - self.calcular_puntuacion(self.__nom_agent2)
+    def calcular_puntuacio_agent(self, nom):
+        claus = list(self.__pos_agent.keys())
+
+        if nom == claus[0]:
+            puntuacio = self.calcular_puntuacion(claus[1]) - self.calcular_puntuacion(claus[0])
         else:
-            puntuacio = self.calcular_puntuacion(self.__nom_agent2) - self.calcular_puntuacion(self.__nom_agent)
+            puntuacio = self.calcular_puntuacion(claus[0]) - self.calcular_puntuacion(claus[1])
 
         return puntuacio
 
     def genera_fills(self):
         """Mètode que genera tot l'abre d'accions"""
-        claus = list(self.__pos_agent.keys())
-
+        # claus = list(self.__pos_agent.keys())
+        self.get_altre_agent()
         fills = []
 
         moviments = {
@@ -105,7 +114,6 @@ class Estat:
             moviment = {self.__nom_agent: coordenades}
 
             actual = Estat(
-                self.__nom_agent,
                 self.__nom_agent2,
                 self.__pos_pizza,
                 moviment,
@@ -129,7 +137,6 @@ class Estat:
             moviment = {self.__nom_agent: coordenades}
 
             actual = Estat(
-                self.__nom_agent,
                 self.__nom_agent2,
                 self.__pos_pizza,
                 moviment,
@@ -142,8 +149,6 @@ class Estat:
 
         return fills
 
-    def evaluar(self):
-        return self.es_meta(), self.calcular_puntuacio_agent()
 
 class Rana(joc.Rana):
     def __init__(self, *args, **kwargs):
@@ -154,8 +159,9 @@ class Rana(joc.Rana):
 
     def _cerca(self, estat: Estat, profunditat, torn_max=True):
         """Mètode que realitza la cerca del cami òptim per arribar a l'estat meta; utilitzant l'algorisme de cerca Min i Max"""
-        meta, score = estat.evaluar()
-        if meta or profunditat == 3:
+        score = estat.calcular_puntuacio_agent(self.nom)
+
+        if estat.es_meta(self.nom) or profunditat == 2:
             return score, estat
 
         puntuacio_fills = [
@@ -172,9 +178,9 @@ class Rana(joc.Rana):
         pass
 
     def actua(
-        self, percep: entorn.Percepcio
+            self, percep: entorn.Percepcio
     ) -> entorn.Accio | tuple[entorn.Accio, object]:
-        
+
         percepcions = percep.to_dict()
         claus = list(percepcions.keys())
         # percep[claus[0]] = pizza, percep[claus[0, 1]] = pos rana, percep[claus[2]] = parets
@@ -184,12 +190,12 @@ class Rana(joc.Rana):
 
         actual = self._cerca(estat, 0)[1]
         agent = percep[claus[1]].keys()
-        
+
         for a in agent:
             # Si l'agent està en la posició final
             if percep[claus[1]][a] == percep[claus[0]]:
                 self.__meta = 1
-        
+
         # Si qualque agent ha guanyat, no es mouen
         if self.__meta == 1:
             return AccionsRana.ESPERAR
