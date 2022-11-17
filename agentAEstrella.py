@@ -87,6 +87,7 @@ class Estat:
             "DALT": (0, -1),
             "BAIX": (0, +1),
         }
+
         claus = list(moviments.keys())
 
         # Cas 1: Desplaçament a una casella adjacent, no diagonal
@@ -154,18 +155,18 @@ class Rana(joc.Rana):
 
         while not self.__oberts.empty():
             _, actual = self.__oberts.get()
+
+            # Si l'estat actual ja s'ha explorat o no és valid, executam la següent iteració
             if actual in self.__tancats:
                 continue
-
-            if actual in self.__tancats:
-                continue
-
-            if not actual.es_valid():
+            elif not actual.es_valid():
                 self.__tancats.add(actual)
                 continue
 
+            # Generam els fills corresponents
             estats_fills = actual.genera_fills()
 
+            # Si tenim la solució, aturam l'execució de la funció
             if actual.es_meta():
                 break
 
@@ -174,6 +175,7 @@ class Rana(joc.Rana):
 
             self.__tancats.add(actual)
 
+        # Si es troba solució, emmagatzemam el camí de l'arbre resultant
         if actual.es_meta():
             accions = []
             iterador = actual
