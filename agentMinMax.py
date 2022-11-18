@@ -2,6 +2,7 @@ from ia_2022 import entorn
 import joc
 from entorn import AccionsRana
 from entorn import Direccio
+from entorn import ClauPercepcio
 
 ESPERAR = 0.5
 BOTAR = 6
@@ -27,10 +28,6 @@ class Estat:
         return self.__pos_agent == other.get_pos_agent()
 
     @property
-    def info(self):
-        return self.__pos_agent
-
-    @property
     def pare(self):
         return self.__pare
 
@@ -53,19 +50,24 @@ class Estat:
     def es_valid(self):
         """Mètode que verifica si un estat es o no vàlid"""
         # Comprovam que l'agent no estigui en una casella paret
+        claus=list(self.__pos_agent.keys())
+        self.get_altre_agent()
         for paret in self.__parets:
             if (
-                    self.__pos_agent[self.__nom_agent][0] == paret[0]
-                    and self.__pos_agent[self.__nom_agent][1] == paret[1]
+                    self.__pos_agent[self.__nom_agent2][0] == paret[0]
+                    and self.__pos_agent[self.__nom_agent2][1] == paret[1]
             ):
                 return False
-
+                # mirar si hi ha agent
+        if (self.__pos_agent[claus[0]][0] == self.__pos_agent[claus[1]][0]):  # mateixa fila??
+                if (self.__pos_agent[claus[0]][1] == self.__pos_agent[claus[1]][1]):  # mateixa columna??
+                    return False
         # Comprovam que l'agent no estigui defora el tauler
         return (
-                (self.__pos_agent[self.__nom_agent][0] <= 7)
-                and (self.__pos_agent[self.__nom_agent][0] >= 0)
-                and (self.__pos_agent[self.__nom_agent][1] <= 7)
-                and (self.__pos_agent[self.__nom_agent][1] >= 0)
+                (self.__pos_agent[self.__nom_agent2][0] <= 7)
+                and (self.__pos_agent[self.__nom_agent2][0] >= 0)
+                and (self.__pos_agent[self.__nom_agent2][1] <= 7)
+                and (self.__pos_agent[self.__nom_agent2][1] >= 0)
         )
 
     def get_altre_agent(self):
@@ -111,12 +113,13 @@ class Estat:
         # Cas 1: Desplaçament a una casella adjacent, no diagonal
         for i, m in enumerate(moviments.values()):
             coordenades = [sum(tup) for tup in zip(self.__pos_agent[self.__nom_agent], m)]
-            moviment = {self.__nom_agent: coordenades}
+            nueva= self.__pos_agent.copy()
+            nueva[self.__nom_agent] = coordenades
 
             actual = Estat(
                 self.__nom_agent2,
                 self.__pos_pizza,
-                moviment,
+                nueva,
                 self.__parets,
                 (self, (AccionsRana.MOURE, Direccio.__getitem__(claus[i])))
             )
@@ -134,12 +137,13 @@ class Estat:
 
         for i, m in enumerate(moviments.values()):
             coordenades = [sum(tup) for tup in zip(self.__pos_agent[self.__nom_agent], m)]
-            moviment = {self.__nom_agent: coordenades}
+            nueva = self.__pos_agent.copy()
+            nueva[self.__nom_agent] = coordenades
 
             actual = Estat(
                 self.__nom_agent2,
                 self.__pos_pizza,
-                moviment,
+                nueva,
                 self.__parets,
                 (self, (AccionsRana.BOTAR, Direccio.__getitem__(claus[i])))
             )
@@ -165,10 +169,11 @@ class Rana(joc.Rana):
             return score, estat
 
         puntuacio_fills = [
-            self._cerca(estat_fill, not torn_max, profunditat + 1)
+            self._cerca(estat_fill, profunditat + 1, not torn_max)
             for estat_fill in estat.genera_fills()
         ]
 
+        print(puntuacio_fills)
         if torn_max:
             return max(puntuacio_fills)
         else:
@@ -185,8 +190,7 @@ class Rana(joc.Rana):
         claus = list(percepcions.keys())
         # percep[claus[0]] = pizza, percep[claus[0, 1]] = pos rana, percep[claus[2]] = parets
         estat: Estat = Estat(
-            self.nom, list(percep[claus[1]].keys())[1], percep[claus[0]], percep[claus[1]], percep[claus[2]]
-        )
+            self.nom, percep[ClauPercepcio.OLOR], percep[ClauPercepcio.POSICIO], percep[ClauPercepcio.PARETS])
 
         actual = self._cerca(estat, 0)[1]
         agent = percep[claus[1]].keys()
@@ -200,6 +204,7 @@ class Rana(joc.Rana):
         if self.__meta == 1:
             return AccionsRana.ESPERAR
 
+        accio = None
         while actual.pare is not None:
             pare, accio = actual.pare
             actual = pare
@@ -211,8 +216,6 @@ class Rana(joc.Rana):
 
         # Si ha de botar o si ha de mourer-se a una casella adjacent
         else:
-            accio = self.__accions.pop()
-
             if accio[0] == AccionsRana.BOTAR:
                 self.__botar = 2
 
