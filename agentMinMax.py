@@ -98,9 +98,13 @@ class Estat:
         claus = list(self.__pos_agent.keys())
 
         if nom == claus[0]:
-            puntuacio = self.calcular_puntuacio(claus[1]) - self.calcular_puntuacio(claus[0])
+            puntuacio = self.calcular_puntuacio(claus[1]) - self.calcular_puntuacio(
+                claus[0]
+            )
         else:
-            puntuacio = self.calcular_puntuacio(claus[0]) - self.calcular_puntuacio(claus[1])
+            puntuacio = self.calcular_puntuacio(claus[0]) - self.calcular_puntuacio(
+                claus[1]
+            )
 
         return puntuacio
 
@@ -212,7 +216,7 @@ class Rana(joc.Rana):
 
         if not self.__meta:
             actual = self._cerca(estat, 0)[1]
-        
+
         agent = percep[claus[1]].keys()
 
         for a in agent:

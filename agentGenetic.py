@@ -13,11 +13,17 @@ MOURE = 1
 
 class Individu:
     max_individus = 20
-    moviments = {(AccionsRana.MOURE, Direccio.DALT): (0, -1), (AccionsRana.MOURE, Direccio.BAIX): (0, +1),
-                (AccionsRana.MOURE, Direccio.ESQUERRE): (-1, 0), (AccionsRana.MOURE, Direccio.DRETA): (+1, 0),
-                (AccionsRana.BOTAR, Direccio.DALT): (0, -2), (AccionsRana.BOTAR, Direccio.BAIX): (0, +2), 
-                (AccionsRana.BOTAR, Direccio.ESQUERRE): (-2, 0), (AccionsRana.BOTAR, Direccio.DRETA): (+2, 0),
-                (AccionsRana.ESPERAR, None): (0, 0)}
+    moviments = {
+        (AccionsRana.MOURE, Direccio.DALT): (0, -1),
+        (AccionsRana.MOURE, Direccio.BAIX): (0, +1),
+        (AccionsRana.MOURE, Direccio.ESQUERRE): (-1, 0),
+        (AccionsRana.MOURE, Direccio.DRETA): (+1, 0),
+        (AccionsRana.BOTAR, Direccio.DALT): (0, -2),
+        (AccionsRana.BOTAR, Direccio.BAIX): (0, +2),
+        (AccionsRana.BOTAR, Direccio.ESQUERRE): (-2, 0),
+        (AccionsRana.BOTAR, Direccio.DRETA): (+2, 0),
+        (AccionsRana.ESPERAR, None): (0, 0),
+    }
 
     def __init__(self, nom, pos_pizza, pos_agent, parets, individu) -> None:
         self.__nom = nom
@@ -52,9 +58,12 @@ class Individu:
 
         for i in range(len(self.__accions)):
             posicio = tuple(map(operator.add, posicio, self.__accions[i]))
-            fitness = abs(self.__pos_pizza[0] - posicio[0]) + abs(self.__pos_pizza[1] - posicio[1])
+            fitness = abs(self.__pos_pizza[0] - posicio[0]) + abs(
+                self.__pos_pizza[1] - posicio[1]
+            )
 
         return fitness
+
 
 class Rana(joc.Rana):
     def __init__(self, *args, **kwargs):
@@ -111,17 +120,14 @@ class Rana(joc.Rana):
     def actua(
         self, percep: entorn.Percepcio
     ) -> entorn.Accio | tuple[entorn.Accio, object]:
-        
+
         if self.__accions is not None:
             if self.__botar <= 0:
                 accio = self.__accions.pop(0)
-            else:    
+            else:
                 self.__botar -= 1
                 return
 
         else:
             individu = self._cerca()
             self.__accions = individu.get_accions()
-
-
-        
