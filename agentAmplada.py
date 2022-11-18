@@ -135,7 +135,7 @@ class Rana(joc.Rana):
         self.__botar = 0
 
     def _cerca(self, estat: Estat):
-        """"Mètode que realitza la cerca del primer camí fins a la porció de pizza, mitjançant una cerca per amplada"""
+        """ "Mètode que realitza la cerca del primer camí fins a la porció de pizza, mitjançant una cerca per amplada"""
         self.__oberts = []
         self.__tancats = set()
 
@@ -148,7 +148,7 @@ class Rana(joc.Rana):
             self.__oberts = self.__oberts[1:]
 
             # Si l'estat actual ja s'ha explorat o no és valid, executam la següent iteració
-            if (actual in self.__tancats):
+            if actual in self.__tancats:
                 continue
             elif not actual.es_valid():
                 self.__tancats.add(actual)

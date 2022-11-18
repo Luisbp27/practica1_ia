@@ -92,7 +92,9 @@ class Estat:
 
         # Cas 1: Desplaçament a una casella adjacent, no diagonal
         for i, m in enumerate(moviments.values()):
-            coordenades = [sum(tup) for tup in zip(self.__pos_agent[self.__nom_agent], m)]
+            coordenades = [
+                sum(tup) for tup in zip(self.__pos_agent[self.__nom_agent], m)
+            ]
             moviment = {self.__nom_agent: coordenades}
             cost = self.__pes + MOURE
 
@@ -117,7 +119,9 @@ class Estat:
         }
 
         for i, m in enumerate(moviments.values()):
-            coordenades = [sum(tup) for tup in zip(self.__pos_agent[self.__nom_agent], m)]
+            coordenades = [
+                sum(tup) for tup in zip(self.__pos_agent[self.__nom_agent], m)
+            ]
             moviment = {self.__nom_agent: coordenades}
             cost = self.__pes + BOTAR
 
