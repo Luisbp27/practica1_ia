@@ -190,7 +190,6 @@ class Rana(joc.Rana):
             for estat_fill in estat.genera_fills()
         ]
 
-        print(puntuacio_fills)
         # Depenent de qui tengui el torn, maximizam o minimitzam el resultat
         if torn_max:
             return max(puntuacio_fills)
@@ -203,10 +202,7 @@ class Rana(joc.Rana):
     def actua(
         self, percep: entorn.Percepcio
     ) -> entorn.Accio | tuple[entorn.Accio, object]:
-        global contador
-        percepcions = percep.to_dict()
-        claus = list(percepcions.keys())
-        # percep[claus[0]] = pizza, percep[claus[0, 1]] = pos rana, percep[claus[2]] = parets
+
         estat: Estat = Estat(
             self.nom,
             percep[ClauPercepcio.OLOR],
@@ -217,11 +213,11 @@ class Rana(joc.Rana):
         if not self.__meta:
             actual = self._cerca(estat, 0)[1]
 
-        agent = percep[claus[1]].keys()
+        agent = percep[ClauPercepcio.POSICIO].keys()
 
         for a in agent:
             # Si l'agent està en la posició final
-            if percep[claus[1]][a] == percep[claus[0]]:
+            if percep[ClauPercepcio.POSICIO][a] == percep[ClauPercepcio.OLOR]:
                 self.__meta = True
 
         # Si qualque agent ha guanyat, no es mouen
@@ -229,6 +225,7 @@ class Rana(joc.Rana):
             return AccionsRana.ESPERAR
 
         accio = None
+
         while actual.pare is not None:
             pare, accio = actual.pare
             actual = pare

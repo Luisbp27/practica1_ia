@@ -2,6 +2,7 @@ from ia_2022 import entorn
 import joc
 from entorn import AccionsRana
 from entorn import Direccio
+from entorn import ClauPercepcio
 from queue import PriorityQueue
 import random
 import operator
@@ -32,6 +33,15 @@ class Individu:
         self.__parets = parets
         self.__accions = individu
 
+    @classmethod
+    def crear_individu(self, ind):
+        individu = []
+
+        for i in range(ind.max_individus):
+            individu.append(list(ind.moviments.values())[random.randint(0, 8)])
+
+        return individu
+
     def __hash__(self):
         return hash(tuple(self.__accions))
 
@@ -44,25 +54,55 @@ class Individu:
     def get_accions(self):
         return self.__accions
 
-    @classmethod
-    def crear_individu(self, ind):
-        individu = []
+    def get_key(self, valor):
+        for k, v in self.moviments.items():
+            if valor == v:
+                return k
 
-        for i in range(ind.max_individus):
-            individu.append(list(ind.moviments.values())[random.randint(0, 8)])
+    def convertir_accions(self):
+        accions = []
 
-        return individu
+        for i in self.__accions:
+            accio = self.get_key(i)
+            accions.append(accio)
+
+        return accions
 
     def fitness(self):
         posicio = self.__pos_agent[self.__nom]
 
         for i in range(len(self.__accions)):
             posicio = tuple(map(operator.add, posicio, self.__accions[i]))
-            fitness = abs(self.__pos_pizza[0] - posicio[0]) + abs(
-                self.__pos_pizza[1] - posicio[1]
+            # Fiabilitat del cost del camí 90% i fiabilitat de la quantitat d'accions 10%
+            fitness = 0.9 * (abs(self.__pos_pizza[0] - posicio[0])) + 0.1 * (
+                abs(self.__pos_pizza[1] - posicio[1])
             )
 
         return fitness
+
+    def corregir(self):
+        posicio = self.__pos_agent[self.__nom]
+        longitud = 0
+
+        for i in range(len(self.__accions)):
+            posicio = tuple(map(operator.add, posicio, self.__accions[i]))
+
+            if (posicio in self.__parets and self.moviments != (0, 0)) or (
+                posicio[0] > 7 or posicio[0] < 7 or posicio[1] > 7 or posicio[1] < 0
+            ):
+                print("Posició no vàlida")
+                break
+
+            longitud += 1
+
+        if longitud == 0:
+            self.__accions = Individu.crear_individu()
+            self.corregir()
+        else:
+            self.__accions = self.__accions[:longitud]
+
+    def reproduir(self, individu):
+        pass
 
 
 class Rana(joc.Rana):
@@ -82,6 +122,7 @@ class Rana(joc.Rana):
         for i in range(20):
             accions = Individu.crear_individu()
             individu = Individu(self.nom, pizza, agent, parets, accions)
+            individu.corregir()
 
             puntuacio = individu.fitness()
             individus.put((individu, puntuacio))
@@ -93,8 +134,19 @@ class Rana(joc.Rana):
                 break
 
             # Generam tots els individus
-            for i in range():
-                pass
+            for i in range(20 - 1):
+                _, actual_1 = list(individus.queue)[i]
+                _, actual_2 = list(individus.queue)[i + 1]
+
+                # Reproduim els pares
+                fill_1, fill_2 = actual_1.reproduce(actual_2)
+                fill_1.corregir()
+                fill_2.corregir()
+
+                fills.append(fill_1)
+                fills.append(fill_2)
+
+                i += 1
 
             # Afegim els fills a la cua de prioritat
             for i in range(len(fills)):
@@ -121,13 +173,30 @@ class Rana(joc.Rana):
         self, percep: entorn.Percepcio
     ) -> entorn.Accio | tuple[entorn.Accio, object]:
 
-        if self.__accions is not None:
-            if self.__botar <= 0:
-                accio = self.__accions.pop(0)
-            else:
+        # Si no tenim cap acció
+        if self.__accions:
+            if self.__botar > 0:
                 self.__botar -= 1
-                return
+
+                return AccionsRana.ESPERAR
+            else:
+                accio = self.__accions.pop(0)
+
+                if self.__accions is []:
+                    self.__accions = None
+
+                elif accio[0] == AccionsRana.BOTAR:
+                    self.__botar = 2
+
+                return accio[0], accio[1]
 
         else:
-            individu = self._cerca()
-            self.__accions = individu.get_accions()
+            if self.__accions is None:
+                individu = self._cerca(
+                    percep[ClauPercepcio.OLOR],
+                    percep[ClauPercepcio.POSICIO],
+                    percep[ClauPercepcio.PARETS],
+                )
+                self.__accions = individu.convertir_accions()
+            else:
+                return AccionsRana.ESPERAR
