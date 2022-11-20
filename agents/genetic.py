@@ -9,19 +9,7 @@ MOURE = 1
 
 
 class Estat:
-    max_individus = 20
-    moviments = {
-        (AccionsRana.MOURE, Direccio.DALT): (0, -1),
-        (AccionsRana.MOURE, Direccio.BAIX): (0, +1),
-        (AccionsRana.MOURE, Direccio.ESQUERRE): (-1, 0),
-        (AccionsRana.MOURE, Direccio.DRETA): (+1, 0),
-        (AccionsRana.BOTAR, Direccio.DALT): (0, -2),
-        (AccionsRana.BOTAR, Direccio.BAIX): (0, +2),
-        (AccionsRana.BOTAR, Direccio.ESQUERRE): (-2, 0),
-        (AccionsRana.BOTAR, Direccio.DRETA): (+2, 0),
-        (AccionsRana.ESPERAR, None): (0, 0),
-    }
-
+   
     def __init__(self, nom, pos_pizza, pos_agent, parets) -> None:
         self.__nom = nom
         self.__pos_pizza = pos_pizza
@@ -34,10 +22,7 @@ class Estat:
     def __lt__(self, other):
         return False
 
-    def crear_estat():
-        pass
-
-    def calcular_f(self):
+    def calcular_fitness(self):
         """Mètode que calcula la f(n)"""
         suma = 0
 
@@ -48,22 +33,23 @@ class Estat:
 
 
 class Rana(joc.Rana):
-    accions_generades = [(AccionsRana.BOTAR, direccio) for direccio in Direccio] + [
-        (AccionsRana.MOURE, direccio) for direccio in Direccio
-    ]
+
+    moviments = {
+        (AccionsRana.MOURE, Direccio.DALT): (0, -1),
+        (AccionsRana.MOURE, Direccio.BAIX): (0, +1),
+        (AccionsRana.MOURE, Direccio.ESQUERRE): (-1, 0),
+        (AccionsRana.MOURE, Direccio.DRETA): (+1, 0),
+        (AccionsRana.BOTAR, Direccio.DALT): (0, -2),
+        (AccionsRana.BOTAR, Direccio.BAIX): (0, +2),
+        (AccionsRana.BOTAR, Direccio.ESQUERRE): (-2, 0),
+        (AccionsRana.BOTAR, Direccio.DRETA): (+2, 0),
+        (AccionsRana.ESPERAR, None): (0, 0),
+    }
 
     def __init__(self, *args, **kwargs):
         super(Rana, self).__init__(*args, **kwargs)
         self.__accions = None
         self.__botar = 0
-
-    def calcular_fitness(
-        self, estat: Estat, individu: list[tuple[AccionsRana, Direccio]]
-    ):
-        for accio, direccio in individu:
-            estat = estat.crear_estat(self.nom, accio, direccio)
-
-        return estat.calcular_f()
 
     def generar_accions(self, percep: entorn.Percepcio):
         self.__accions = self._cerca(Estat.from_percep(percep, None), 50, 10, 25, 0.1)
@@ -73,16 +59,15 @@ class Rana(joc.Rana):
 
         # Cream una població aleatoria
         poblacio = []
-
         for _ in range(tamany_poblacio):
             for _ in range(accions):
-                poblacio.append(random.choice(self.accions_generades))
+                poblacio.append(random.choice(list(self.moviments.items())))
 
         # Iteram fins a trobar un individu que arribi a la posició final
         while True:
             # Seleccionam la poblacio segons la funció fitness
             poblacio_fitness = sorted(
-                ((i, self.calcular_fitness(estat, i)) for i in poblacio),
+                ((i, Estat.calcular_fitness(i)) for i in poblacio),
                 key=lambda i: i[1],
             )[:individus]
 
@@ -111,7 +96,7 @@ class Rana(joc.Rana):
                 if random.random() < mutacio:
                     # Modificam un  individu aleatori de la població
                     i[random.randInt(0, len(poblacio) - 1)] - random.choice(
-                        self.accions_generades
+                        self.moviments
                     )
 
     def pinta(self, display):
