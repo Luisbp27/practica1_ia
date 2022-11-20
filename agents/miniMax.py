@@ -1,8 +1,6 @@
 from ia_2022 import entorn
 import joc
-from entorn import AccionsRana
-from entorn import Direccio
-from entorn import ClauPercepcio
+from entorn import AccionsRana, Direccio, ClauPercepcio
 
 
 ESPERAR = 0.5

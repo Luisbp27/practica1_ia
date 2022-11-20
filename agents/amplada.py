@@ -1,9 +1,6 @@
 from ia_2022 import entorn
 import joc
-from entorn import AccionsRana
-from entorn import Direccio
-from entorn import ClauPercepcio
-from queue import PriorityQueue
+from entorn import AccionsRana, Direccio, ClauPercepcio
 
 ESPERAR = 0.5
 BOTAR = 6
@@ -11,12 +8,11 @@ MOURE = 1
 
 
 class Estat:
-    def __init__(self, nom, pos_pizza, pos_agent, parets, pes=0, pare=None):
-        self.nom_agent = nom
+    def __init__(self, nom, pos_pizza, pos_agent, parets, pare=None):
+        self.__nom_agent = nom
         self.__pos_pizza = pos_pizza
         self.__pos_agent = pos_agent
         self.__parets = parets
-        self.__pes = pes
         self.__pare = pare
 
     def __hash__(self):
@@ -47,8 +43,8 @@ class Estat:
     def es_meta(self) -> bool:
         """Mètode que verifica si un estat es o no meta, en funció de la posició de l'agent i de la posició final"""
         return (
-            self.__pos_agent[self.nom_agent][0] == self.__pos_pizza[0]
-            and self.__pos_agent[self.nom_agent][1] == self.__pos_pizza[1]
+            self.__pos_agent[self.__nom_agent][0] == self.__pos_pizza[0]
+            and self.__pos_agent[self.__nom_agent][1] == self.__pos_pizza[1]
         )
 
     def es_valid(self):
@@ -56,27 +52,18 @@ class Estat:
         # Comprovam que l'agent no estigui en una casella paret
         for paret in self.__parets:
             if (
-                self.__pos_agent[self.nom_agent][0] == paret[0]
-                and self.__pos_agent[self.nom_agent][1] == paret[1]
+                self.__pos_agent[self.__nom_agent][0] == paret[0]
+                and self.__pos_agent[self.__nom_agent][1] == paret[1]
             ):
                 return False
 
         # Comprovam que l'agent no estigui defora el tauler
         return (
-            (self.__pos_agent[self.nom_agent][0] <= 7)
-            and (self.__pos_agent[self.nom_agent][0] >= 0)
-            and (self.__pos_agent[self.nom_agent][1] <= 7)
-            and (self.__pos_agent[self.nom_agent][1] >= 0)
+            (self.__pos_agent[self.__nom_agent][0] <= 7)
+            and (self.__pos_agent[self.__nom_agent][0] >= 0)
+            and (self.__pos_agent[self.__nom_agent][1] <= 7)
+            and (self.__pos_agent[self.__nom_agent][1] >= 0)
         )
-
-    def calcular_f(self):
-        """Mètode que calcula la f(n)"""
-        suma = 0
-
-        for i in range(2):
-            suma += abs(self.__pos_pizza[i] - self.__pos_agent[self.nom_agent][i])
-
-        return suma + self.__pes
 
     def genera_fills(self):
         """Mètode que genera tot l'abre d'accions"""
@@ -95,30 +82,26 @@ class Estat:
         for j in range(2):
             for i, m in enumerate(moviments.values()):
                 coordenades = [
-                    sum(tup) for tup in zip(self.__pos_agent[self.nom_agent], m)
+                    sum(tup) for tup in zip(self.__pos_agent[self.__nom_agent], m)
                 ]
-                moviment = {self.nom_agent: coordenades}
+                moviment = {self.__nom_agent: coordenades}
 
                 if j == 0:
-                    cost = self.__pes + MOURE
 
                     actual = Estat(
-                        self.nom_agent,
+                        self.__nom_agent,
                         self.__pos_pizza,
                         moviment,
                         self.__parets,
-                        cost,
                         (self, (AccionsRana.MOURE, Direccio.__getitem__(claus[i]))),
                     )
                 else:
-                    cost = self.__pes + BOTAR
 
                     actual = Estat(
-                        self.nom_agent,
+                        self.__nom_agent,
                         self.__pos_pizza,
                         moviment,
                         self.__parets,
-                        cost,
                         (self, (AccionsRana.BOTAR, Direccio.__getitem__(claus[i]))),
                     )
 
@@ -145,15 +128,17 @@ class Rana(joc.Rana):
         self.__botar = 0
 
     def _cerca(self, estat: Estat):
-        """Mètode que realitza la cerca del cami òptim per arribar a l'estat meta; utilitzant l'algorisme de cerca no informada per amplada"""
-        self.__oberts = PriorityQueue()
+        """ "Mètode que realitza la cerca del primer camí fins a la porció de pizza, mitjançant una cerca per amplada"""
+        self.__oberts = []
         self.__tancats = set()
 
-        self.__oberts.put((estat.calcular_f(), estat))
+        self.__oberts.append(estat)
         actual: Estat = None
 
-        while not self.__oberts.empty():
-            _, actual = self.__oberts.get()
+        # Mentres tinguem nodes a explorar, seguim executant el bucle
+        while len(self.__oberts) > 0:
+            actual = self.__oberts[0]
+            self.__oberts = self.__oberts[1:]
 
             # Si l'estat actual ja s'ha explorat o no és valid, executam la següent iteració
             if actual in self.__tancats:
@@ -170,7 +155,7 @@ class Rana(joc.Rana):
                 break
 
             for estat_f in estats_fills:
-                self.__oberts.put((estat_f.calcular_f(), estat_f))
+                self.__oberts.append(estat_f)
 
             self.__tancats.add(actual)
 
@@ -181,10 +166,13 @@ class Rana(joc.Rana):
 
             while iterador.pare is not None:
                 pare, accio = iterador.pare
+
                 accions.append(accio)
                 iterador = pare
 
             self.__accions = accions
+
+            return True
 
     def pinta(self, display):
         pass
