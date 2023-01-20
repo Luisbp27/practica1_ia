@@ -20,3 +20,5 @@ Instalar las librerias:
 ```
     pip install -r requirements.txt
 ```
+
+Nota: 7
